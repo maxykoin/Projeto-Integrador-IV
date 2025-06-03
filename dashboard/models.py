@@ -10,7 +10,8 @@ class Peca(models.Model):
 
 # Modelo para Estoque
 class Estoque(models.Model):
-    tipo = models.CharField(max_length=50)  # Ex: 'círculo', 'hexágono', 'quadrado'
+    id = models.IntegerField(primary_key=True)  # Só se quiser controlar!
+    tipo = models.CharField(max_length=50)
     qtd = models.IntegerField()
 
 

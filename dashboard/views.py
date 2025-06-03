@@ -3,10 +3,25 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-from .models import Pedido
+from .models import Pedido, Estoque
 
 def home(request):
-    return render(request, 'home.html')
+    em_andamento = Pedido.objects.filter(status='em_andamento').count()
+    pedidos_entregues = Pedido.objects.filter(status='entregue').count()
+
+    # Pegando os objetos e seus campos qtd
+    circulo = Estoque.objects.get(id=0).qtd
+    hexagono = Estoque.objects.get(id=1).qtd
+    quadrado = Estoque.objects.get(id=2).qtd
+
+    return render(request, 'home.html', {
+        'em_andamento': em_andamento,
+        'entregue': pedidos_entregues,
+        'circulo': circulo,
+        'hexagono': hexagono,
+        'quadrado': quadrado,
+    })
+
 
 @csrf_exempt
 def novoPedido(request):

@@ -84,9 +84,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             alert(`✅ Pedido enviado com sucesso! ID: ${data.pedido_id}`);
 
+            // ✅ Atualizar o contador se o status for "em andamento"
+            if (data.status === 'em_andamento') {
+                const andamentoSpan = document.getElementById('pedidosAndamento');
+                if (andamentoSpan) {
+                    const currentCount = parseInt(andamentoSpan.textContent, 10);
+                    andamentoSpan.textContent = currentCount + 1;
+                }
+            }
+
         } catch (error) {
             alert(`❌ Erro ao enviar o pedido: ${error.message || 'Um erro desconhecido ocorreu.'}`);
         }
     }
 });
+
 
