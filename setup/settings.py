@@ -80,11 +80,9 @@ WSGI_APPLICATION = 'setup.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
-        'NAME': 'PIIV',  # same as <dbname>
-        'CLIENT': {
-            'host': os.getenv('MONGODB'),
-            'tls': True,
-        }
+        'NAME': 'pi-iv',
+        'HOST': 'localhost',
+        'PORT': 27017,
     }
 }
 
