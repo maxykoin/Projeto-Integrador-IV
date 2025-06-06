@@ -1,4 +1,4 @@
-{% load static %}
+{% load static %} 
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -6,6 +6,8 @@
   <title>Dashboard - Estoque</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-white min-h-screen flex flex-col">
 <header class="flex items-center gap-6 px-6 py-4" style="background: url(https://www.boschmediaservice.hu/storage/publication/118_w1600.jpg); background-size: cover; background-position: center;">
@@ -20,45 +22,45 @@
     </a>
 </header>
 
-  {% if circulo < 2 or hexagono < 2 or quadrado < 2 %}
-  <section aria-live="assertive" role="alert" class="max-w-3xl mx-auto mt-4 px-4 py-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-center shadow-md">
-    <i class="fas fa-exclamation-triangle mr-2"></i>
-    Atenção: Estoque baixo em
-    {% if circulo < 2 %} <strong>Círculo</strong>{% if hexagono < 2 or quadrado < 2 %}, {% endif %}{% endif %}
-    {% if hexagono < 2 %} <strong>Hexágono</strong>{% if quadrado < 2 %}, {% endif %}{% endif %}
-    {% if quadrado < 2 %} <strong>Quadrado</strong>{% endif %}.
-    Considere realizar a realimentação.
+{% if circulo < 2 or hexagono < 2 or quadrado < 2 %}
+<section aria-live="assertive" role="alert" class="max-w-3xl mx-auto mt-4 px-4 py-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-center shadow-md">
+  <i class="fas fa-exclamation-triangle mr-2"></i>
+  Atenção: Estoque baixo em
+  {% if circulo < 2 %} <strong>Círculo</strong>{% if hexagono < 2 or quadrado < 2 %}, {% endif %}{% endif %}
+  {% if hexagono < 2 %} <strong>Hexágono</strong>{% if quadrado < 2 %}, {% endif %}{% endif %}
+  {% if quadrado < 2 %} <strong>Quadrado</strong>{% endif %}.
+  Considere realizar a realimentação.
+</section>
+{% endif %}
+
+<main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-hidden" role="main" aria-label="Dashboard do estoque">
+  <h1 class="text-center text-3xl font-extrabold text-gray-900 mb-12">Dashboard de Estoque</h1>
+
+  <!-- Indicadores gerais -->
+  <section aria-label="Indicadores gerais do sistema" class="max-w-4xl mx-auto mb-12 flex flex-wrap justify-center gap-6">
+    <div class="bg-purple-700 text-white rounded-xl shadow-md p-5 flex flex-col items-center justify-center min-w-[180px]">
+      <p class="text-xs uppercase tracking-wide font-semibold mb-1">Total de Pedidos</p>
+      <p class="text-4xl font-bold select-none">{{ entregue|add:em_andamento }}</p>
+    </div>
+
+    <div class="bg-blue-600 text-white rounded-xl shadow-md p-5 flex flex-col items-center justify-center min-w-[180px]">
+      <p class="text-xs uppercase tracking-wide font-semibold mb-1">Pedidos em Andamento</p>
+      <p class="text-base font-medium select-none">{{ em_andamento }}</p>
+    </div>
+
+    <button
+      id="atualizarBtn"
+      type="button"
+      class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-full shadow-md transition min-w-[180px]"
+      aria-label="Atualizar dados do dashboard"
+      >
+      <i class="fas fa-sync-alt mr-2"></i> Atualizar Dados
+    </button>
   </section>
-  {% endif %}
 
-  <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-hidden" role="main" aria-label="Dashboard do estoque">
-    <h1 class="text-center text-3xl font-extrabold text-gray-900 mb-12">Dashboard de Estoque</h1>
-
-    <section aria-label="Indicadores gerais do sistema" class="max-w-4xl mx-auto mb-12 flex flex-wrap justify-center gap-6">
-      <!-- Total Pedidos Entregues -->
-      <div class="bg-purple-700 text-white rounded-xl shadow-md p-5 flex flex-col items-center justify-center min-w-[180px]">
-        <p class="text-xs uppercase tracking-wide font-semibold mb-1">Total de Pedidos</p>
-        <p class="text-4xl font-bold select-none">{{ entregue }}</p>
-      </div>
-      
-
-      <!-- Pedidos em Andamento -->
-      <div class="bg-blue-600 text-white rounded-xl shadow-md p-5 flex flex-col items-center justify-center min-w-[180px]">
-        <p class="text-xs uppercase tracking-wide font-semibold mb-1">Pedidos em Andamento</p>
-        <p class="text-base font-medium select-none">{{ em_andamento }}</p>
-      </div>
-
-      <button
-        id="atualizarBtn"
-        type="button"
-        class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-full shadow-md transition min-w-[180px]"
-        aria-label="Atualizar dados do dashboard"
-        >
-        <i class="fas fa-sync-alt mr-2"></i> Atualizar Dados
-      </button>
-    </section>
-
-    <section aria-label="Resumo das formas em estoque" class="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-16">
+  <!-- Estoque com gráfico -->
+  <section aria-label="Resumo das formas em estoque" class="max-w-4xl mx-auto mb-16">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-12">
       <!-- Círculo -->
       <div class="bg-[#1CA1C6] rounded-xl shadow-md p-6 flex flex-col items-center justify-center text-white transition hover:shadow-xl">
         <div class="flex items-center justify-center w-24 h-24 rounded-full border-4 border-white">
@@ -67,15 +69,15 @@
         <p class="mt-5 text-xl font-semibold">Círculo</p>
       </div>
 
-      <!-- Hexágono com outline branco -->
+      <!-- Hexágono -->
       <div class="bg-[#8ABF7A] rounded-xl shadow-md p-6 flex flex-col items-center justify-center text-white transition hover:shadow-xl relative">
-          <div class="relative w-28 h-28 flex items-center justify-center mb-4"> {# Adjusted container size for better centering #}
-              <svg aria-hidden="true" width="112" height="96" viewBox="0 0 112 96" fill="none" xmlns="http://www.w3.org/2000/svg" class="absolute inset-0 m-auto">
-                  <polygon points="28 0 84 0 112 48 84 96 28 96 0 48" stroke="white" stroke-width="6" fill="transparent" />
-              </svg>
-              <span id="hexagono" class="relative text-6xl font-light leading-none z-10">{{ hexagono }}</span>
-          </div>
-          <p class="mt-2 text-xl font-semibold">Hexágono</p> {# Removed the excessive mt-28 #}
+        <div class="relative w-28 h-28 flex items-center justify-center mb-4">
+          <svg aria-hidden="true" width="112" height="96" viewBox="0 0 112 96" fill="none" xmlns="http://www.w3.org/2000/svg" class="absolute inset-0 m-auto">
+            <polygon points="28 0 84 0 112 48 84 96 28 96 0 48" stroke="white" stroke-width="6" fill="transparent" />
+          </svg>
+          <span id="hexagono" class="relative text-6xl font-light leading-none z-10">{{ hexagono }}</span>
+        </div>
+        <p class="mt-2 text-xl font-semibold">Hexágono</p>
       </div>
 
       <!-- Quadrado -->
@@ -85,33 +87,13 @@
         </div>
         <p class="mt-5 text-xl font-semibold">Quadrado</p>
       </div>
-    </section>
+    </div>
+</main>
 
-    <!-- Pedidos status -->
-    <section aria-label="Status dos pedidos" class="max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-10 text-center">
+<footer class="bg-gray-800 text-white text-center p-4 shadow-inner">
+  <p>&copy; 2025 Projeto Integrador IV. Todos os direitos reservados.</p>
+</footer>
 
-      <div class="bg-[#8B1B23] rounded-xl shadow-md p-6 flex flex-col items-center justify-center text-white transition hover:shadow-xl">
-        <p class="mb-6 text-2xl font-semibold">Pedidos em Andamento</p>
-        <div class="flex items-center justify-center w-24 h-24 rounded-full border-4 border-white">
-          <span id="pedidosAndamento" class="text-6xl font-light leading-none select-none">{{ em_andamento }}</span>
-        </div>
-      </div>
-
-      <div class="bg-[#215AA1] rounded-xl shadow-md p-6 flex flex-col items-center justify-center text-white transition hover:shadow-xl">
-        <p class="mb-6 text-2xl font-semibold">Pedidos Entregues</p>
-        <div class="flex items-center justify-center w-24 h-24 rounded-full border-4 border-white">
-          <span id="pedidosEntregues" class="text-6xl font-light leading-none select-none">{{ entregue }}</span>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="bg-gray-800 text-white text-center p-4 shadow-inner">
-    <p>&copy; 2025 Projeto Integrador IV. Todos os direitos reservados.</p>
-  </footer>
-
-  <script src="{% static 'script.js' %}"></script>
-  <script>document.getElementById('atualizarBtn').addEventListener('click', () => {location.reload();});</script>
-
+<script src="{% static 'script.js' %}"></script>
 </body>
 </html>

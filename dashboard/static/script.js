@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // --- Código do seu pedidoForm e filtros ---
   const pedidoForm = document.getElementById('pedidoForm');
   const confirmarBtn = document.getElementById('confirmarBtn');
 
@@ -11,10 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Atualiza preview inicial (caso já tenha seleção)
   ['1', '2', '3'].forEach(updatePreview);
-  
-  // --- Funções ---
 
-  // Inicializa os event listeners dos selects de peça
+  // --- Funções do pedidoForm ---
+
   function initPieceSelectors() {
     ['1', '2', '3'].forEach(num => {
       const select = document.querySelector(`select[name="peca${num}"]`);
@@ -24,7 +24,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Atualiza a pré-visualização da peça selecionada
   function updatePreview(id) {
     const select = document.querySelector(`select[name="peca${id}"]`);
     const preview = document.getElementById(`peca${id}`);
@@ -56,7 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Converte shape para nome da peça
   function shapeToNomePeca(shape) {
     switch (shape) {
       case 'circle': return 'circulo';
@@ -66,7 +64,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Handler do clique no botão confirmar
   async function handleConfirmClick(event) {
     event.preventDefault();
 
@@ -106,12 +103,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Configura a busca e filtro da lista de pedidos
+
   function setupSearch() {
     const input = document.getElementById('searchInput');
+    if (!input) return; // Se não encontrar o input, sai da função
+
     const items = document.querySelectorAll('.pedido-item');
 
-    // Cria o elemento de aviso caso não exista
     let aviso = document.getElementById('avisoNenhumPedido');
     if (!aviso) {
       aviso = document.createElement('p');
@@ -119,10 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
       aviso.className = 'text-center text-red-600 mt-4 font-semibold';
       aviso.textContent = 'Pedido não encontrado.';
       aviso.style.display = 'none';
-      input.parentNode.parentNode.appendChild(aviso); // adiciona após o form
+      input.parentNode.parentNode.appendChild(aviso);
     }
 
-    // Função que executa o filtro
     function filtrarPedidos() {
       const query = input.value.trim().toLowerCase();
       let encontrado = false;
