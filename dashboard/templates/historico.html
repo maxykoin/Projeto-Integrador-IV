@@ -1,0 +1,92 @@
+{% load static %}
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Histórico</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+</head>
+<body class="flex flex-col min-h-screen bg-white">
+
+  <!-- Header -->
+  <header class="flex items-center gap-6 px-6 py-4" style="background: url(https://www.boschmediaservice.hu/storage/publication/118_w1600.jpg)">
+    <a href="/" class="text-white text-3xl"><i class="fas fa-home"></i></a>
+    <a href="/pedidos/" class="text-white text-3xl"><i class="fas fa-plus-circle"></i></a>
+    <a href="/pedidos/historico" class="text-white text-3xl"><i class="fas fa-list"></i></a>
+  </header>
+
+  <!-- Conteúdo principal -->
+  <main class="flex-grow flex flex-col items-center px-4 py-8">
+    <div class="max-w-4xl w-full flex flex-col h-[650px]">
+      <h1 class="text-3xl font-bold mb-6 text-gray-800 text-center">Histórico de Pedidos</h1>
+
+      <!-- Campo de busca -->
+      <form id="searchForm" onsubmit="return false;" class="mb-6 w-full max-w-xl mx-auto">
+        <input id="searchInput" type="text" placeholder="Buscar por ID ou status..."
+               class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500" />
+      </form>
+
+      {% if pedidos %}
+      <div class="overflow-y-auto border border-gray-200 rounded-lg p-4 mx-auto"
+           style="width: 80vw; max-width: 900px; max-height: 60vh;">
+        <ul id="pedidoLista" class="flex flex-col gap-4 w-full">
+          {% for pedido in pedidos %}
+            <li class="pedido-item w-full flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-lg shadow-sm"
+                data-id="{{ pedido.id }}" data-status="{{ pedido.status }}">
+              
+              <div class="mb-4 sm:mb-0 sm:max-w-xs">
+                <p class="text-sm text-gray-600">Pedido ID: <span class="font-semibold text-gray-800">{{ pedido.id }}</span></p>
+                <p class="text-sm text-gray-600">
+                  Status:
+                  {% if pedido.status == "em_andamento" %}
+                    <span class="text-yellow-600 font-semibold">Em andamento</span>
+                  {% elif pedido.status == "entregue" %}
+                    <span class="text-green-600 font-semibold">Entregue</span>
+                  {% else %}
+                    <span class="text-gray-600">{{ pedido.status }}</span>
+                  {% endif %}
+                </p>
+              </div>
+
+              <div class="flex flex-wrap gap-3">
+                {% for peca in pedido.pecas %}
+                  {% if peca == "circulo" %}
+                    <div class="w-8 h-8 flex items-center justify-center bg-blue-500 rounded-full shadow-md">
+                      <i class="fas fa-circle text-white text-lg"></i>
+                    </div>
+                  {% elif peca == "quadrado" %}
+                    <div class="w-8 h-8 flex items-center justify-center bg-purple-600 rounded shadow-md">
+                      <i class="fas fa-square-full text-white text-lg"></i>
+                    </div>
+                  {% elif peca == "hexagono" %}
+                    <div class="w-8 h-8 flex items-center justify-center bg-green-600 rounded shadow-md">
+                      <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                        <polygon points="12,2 22,7 22,17 12,22 2,17 2,7"/>
+                      </svg>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% else %}
+        <p class="text-center text-gray-500 mt-8">Nenhum pedido encontrado.</p>
+      {% endif %}
+    </div>
+  </main>
+
+  <!-- Rodapé fixo -->
+  <footer class="bg-gray-800 text-white text-center p-4">
+    <p>&copy; 2025 Projeto Integrador IV. Todos os direitos reservados.</p>
+  </footer>
+  <script src="{% static 'script.js' %}" defer></script>
+</body>
+</html>
+
+
+
+
+

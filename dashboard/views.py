@@ -40,3 +40,7 @@ def novoPedido(request):
         return JsonResponse({'message': 'Pedido criado com sucesso!', 'pedido_id': str(pedido.id)})
 
     return render(request, 'novoPedido.html')
+
+def historico(request):
+    pedidos = Pedido.objects.all().order_by('-id')
+    return render(request, 'historico.html', {'pedidos': pedidos})
