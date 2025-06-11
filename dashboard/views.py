@@ -23,23 +23,45 @@ def home(request):
     })
 
 
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.shortcuts import render
+import json
+from .models import Pedido  # ajuste conforme necessário
+
 @csrf_exempt
 def novoPedido(request):
     if request.method == 'POST':
         data = json.loads(request.body)
 
-        peca1 = data.get('peca1')
-        peca2 = data.get('peca2')
-        peca3 = data.get('peca3')
+        # Mapeamento de forma → número
+        forma_para_valor = {
+            'circle': 0,
+            'hexagon': 1,
+            'square': 2
+        }
+
+        # Captura as 9 peças e converte
+        pecas_convertidas = []
+        for i in range(1, 10):
+            nome_peca = data.get(f'peca{i}')
+            valor = forma_para_valor.get(nome_peca)
+            if valor is None:
+                return JsonResponse({'error': f'Peça {i} inválida: {nome_peca}'}, status=400)
+            pecas_convertidas.append(valor)
+
+        # Converte a lista em uma matriz 3x3
+        matriz_pecas = [pecas_convertidas[i:i+3] for i in range(0, 9, 3)]
 
         pedido = Pedido.objects.create(
-            pecas=[peca1, peca2, peca3],
+            pecas=matriz_pecas,
             status='em_andamento'
         )
 
         return JsonResponse({'message': 'Pedido criado com sucesso!', 'pedido_id': str(pedido.id)})
 
     return render(request, 'novoPedido.html')
+
 
 def historico(request):
     pedidos = Pedido.objects.all().order_by('-id')
