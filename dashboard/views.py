@@ -10,9 +10,9 @@ def home(request):
     pedidos_entregues = Pedido.objects.filter(status='entregue').count()
 
     # Pegando os objetos e seus campos qtd
-    circulo = Estoque.objects.get(id=0).qtd
-    hexagono = Estoque.objects.get(id=1).qtd
-    quadrado = Estoque.objects.get(id=2).qtd
+    circulo = Estoque.objects.get(id=1).qtd
+    hexagono = Estoque.objects.get(id=2).qtd
+    quadrado = Estoque.objects.get(id=3).qtd
 
     return render(request, 'home.html', {
         'em_andamento': em_andamento,
@@ -22,43 +22,45 @@ def home(request):
         'quadrado': quadrado,
     })
 
-
-from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
-from django.shortcuts import render
-import json
-from .models import Pedido  # ajuste conforme necessário
-
 @csrf_exempt
 def novoPedido(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
+        try:
+            data = json.loads(request.body)
 
-        # Mapeamento de forma → número
-        forma_para_valor = {
-            'circle': 0,
-            'hexagon': 1,
-            'square': 2
-        }
+            forma_para_valor = {
+                'circle': 1,
+                'hexagon': 2,
+                'square': 3
+            }
 
-        # Captura as 9 peças e converte
-        pecas_convertidas = []
-        for i in range(1, 10):
-            nome_peca = data.get(f'peca{i}')
-            valor = forma_para_valor.get(nome_peca)
-            if valor is None:
-                return JsonResponse({'error': f'Peça {i} inválida: {nome_peca}'}, status=400)
-            pecas_convertidas.append(valor)
+            pecas_convertidas = []
+            for i in range(1, 10):
+                nome_peca = data.get(f'peca{i}')
+            
+                if nome_peca is None:
+                    return JsonResponse({'message': f'Peça {i} não fornecida.'}, status=400)
+                
+                valor = forma_para_valor.get(nome_peca)
+                if valor is None:
+                    return JsonResponse({'message': f'Peça {i} inválida: "{nome_peca}". Valores esperados: circle, hexagon, square.'}, status=400)
+                
+                pecas_convertidas.append(valor)
 
-        # Converte a lista em uma matriz 3x3
-        matriz_pecas = [pecas_convertidas[i:i+3] for i in range(0, 9, 3)]
+            matriz_pecas = [pecas_convertidas[i:i+3] for i in range(0, 9, 3)]
 
-        pedido = Pedido.objects.create(
-            pecas=matriz_pecas,
-            status='em_andamento'
-        )
+            pedido = Pedido.objects.create(
+                pecas=matriz_pecas,
+                status='em_andamento'
+            )
 
-        return JsonResponse({'message': 'Pedido criado com sucesso!', 'pedido_id': str(pedido.id)})
+            return JsonResponse({'message': 'Pedido criado com sucesso!', 'pedido_id': str(pedido.id)}, status=201)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'message': 'Corpo da requisição JSON inválido.'}, status=400)
+        except Exception as e:
+            print(f"Erro inesperado: {e}")
+            return JsonResponse({'message': f'Ocorreu um erro interno: {str(e)}'}, status=500)
 
     return render(request, 'novoPedido.html')
 

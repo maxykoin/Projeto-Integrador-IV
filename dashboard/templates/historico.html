@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Histórico</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="https://cdn.iconscout.com/icon/free/png-256/free-bosch-3442885-2875346.png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
 </head>
 <body class="flex flex-col min-h-screen bg-white">
@@ -48,27 +49,6 @@
                   {% endif %}
                 </p>
               </div>
-
-              <div class="flex flex-wrap gap-3">
-                {% for peca in pedido.pecas %}
-                  {% if peca == "circulo" %}
-                    <div class="w-8 h-8 flex items-center justify-center bg-blue-500 rounded-full shadow-md">
-                      <i class="fas fa-circle text-white text-lg"></i>
-                    </div>
-                  {% elif peca == "quadrado" %}
-                    <div class="w-8 h-8 flex items-center justify-center bg-purple-600 rounded shadow-md">
-                      <i class="fas fa-square-full text-white text-lg"></i>
-                    </div>
-                  {% elif peca == "hexagono" %}
-                    <div class="w-8 h-8 flex items-center justify-center bg-green-600 rounded shadow-md">
-                      <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <polygon points="12,2 22,7 22,17 12,22 2,17 2,7"/>
-                      </svg>
-                    </div>
-                  {% endif %}
-                {% endfor %}
-              </div>
-            </li>
           {% endfor %}
         </ul>
       </div>
@@ -83,6 +63,20 @@
     <p>&copy; 2025 Projeto Integrador IV. Todos os direitos reservados.</p>
   </footer>
   <script src="{% static 'script.js' %}" defer></script>
+
+  <!-- Modal de Detalhes do Pedido -->
+  <div id="pedidoModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden">
+    <div class="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full relative animate-fade-in">
+      
+      <!-- Botão de fechar -->
+      <button id="fecharModal" class="absolute top-2 right-2 text-gray-600 hover:text-red-500 text-2xl font-bold">&times;</button>
+      
+      <!-- Conteúdo -->
+      <h2 class="text-2xl font-bold mb-4 text-gray-800">Detalhes do Pedido</h2>
+      <p class="mb-2 text-gray-700"><strong>ID do Pedido:</strong> <span id="modalPedidoId" class="font-semibold text-gray-900"></span></p>
+      <p class="mb-4 text-gray-700"><strong>Status:</strong> <span id="modalPedidoStatus" class="font-semibold text-purple-600"></span></p>
+    </div>
+  </div>
 </body>
 </html>
 
