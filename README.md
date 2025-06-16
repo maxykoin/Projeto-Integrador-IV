@@ -1,4 +1,4 @@
-# 🛠 Projeto Integrador IV
+# Projeto Integrador IV
 
 ## 📌 Visão Geral
 
@@ -28,7 +28,7 @@ Este projeto é um sistema web desenvolvido com Django para o gerenciamento e vi
 piiv/
 │
 ├── manage.py
-├── .env                     # Configurações secretas (não versionado)
+├── .env                    # Configurações secretas (não versionado)
 ├── setup/                  # Configurações globais do Django
 │   ├── settings.py         # Configurações principais
 │   ├── urls.py             # URLs principais
@@ -57,7 +57,6 @@ piiv/
 - 🧩 Seleção e separação visual de peças por pedido
 - 🧾 Dashboard para monitoramento de peças em espera e pedidos
 - 🖼 Interface com visualização gráfica dos componentes
-- 🧪 Testes automatizados com `tests.py`
 - 🔐 Arquivo `.env` para variáveis sensíveis
 
 ---
@@ -93,20 +92,38 @@ Define as entidades principais:
 
 ```bash
 # Clone o repositório
-git clone https://github.com/maxykoin/piiv.git
+git clone [https://github.com/maxykoin/piiv.git](https://github.com/maxykoin/piiv.git)
 cd piiv
 
 # Crie o ambiente virtual
 python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+source venv/bin/activate # Windows: venv\Scripts\activate
 
 # Instale dependências
 pip install -r requirements.txt
+pip install python-dotenv # Instale também o python-dotenv para gerenciar variáveis de ambiente
+```
+#### Configuração do SECRET_KEY e Variáveis de Ambiente
+Abra seu terminal na raiz do projeto (piiv/) e execute o comando:
 
-# Configure o .env
-cp .env.example .env
-# (Edite o arquivo conforme suas variáveis)
+```bash
+python manage.py shell -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
 
+Copie a chave secreta que será exibida e adicione ao arquivo .env
+```bash
+SECRET_KEY = 'sua_secret_key'
+```
+
+Para o banco de dados, adicione a connection string do seu banco no arquivo .env
+```bash
+MONGODB = 'connection_string'
+```
+
+### Rodando a Aplicação
+Aplique as migrações do banco de dados:
+
+```bash
 # Aplique as migrações
 python manage.py migrate
 
@@ -120,7 +137,7 @@ python manage.py runserver
 
 1. Acesse `http://127.0.0.1:8000/`
 2. Clique em “Novo Pedido”
-3. Escolha peças para cada subpedido (ex: 1, 2, 3)
+3. Escolha peças para cada montagem
 4. Confirme
 5. Acesse o “Histórico” e clique para ver os detalhes gráficos
 
