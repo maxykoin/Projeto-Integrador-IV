@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     //           CONSTANTES
     // ===============================
 
-    // Cores específicas para cada montagem (mantidas para consistência visual)
     const MONTAGE_COLORS = {
         '1': 'bg-blue-500',
         '2': 'bg-purple-600',
@@ -12,48 +11,45 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ===============================
-    //        ELEMENTOS DO DOM
+    //         ELEMENTOS DO DOM
     // ===============================
 
-    // Elementos da página "Novo Pedido"
     const newOrderForm = document.getElementById('pedidoForm');
     const confirmOrderButton = document.getElementById('confirmarBtn');
 
-    // Elementos do Modal de Detalhes do Pedido (usado na página "Histórico")
     const orderDetailsModal = document.getElementById('pedido-modal');
     const closeModalButton = document.getElementById('close-modal-btn');
     const modalOrderId = document.getElementById('modal-pedido-id');
     const modalOrderStatus = document.getElementById('modal-pedido-status');
-    const historicalOrderItems = document.querySelectorAll('.pedido-item'); // Itens da lista no histórico
+    const historicalOrderItems = document.querySelectorAll('.pedido-item');
 
-    // Elementos da Busca no Histórico
     const searchInput = document.getElementById('searchInput');
-    const orderList = document.getElementById('pedidoLista'); // A ul que contém os items do pedido
-    let noResultsMessage = document.getElementById('avisoNenhumPedido'); // Pode ser nulo inicialmente
+    const orderList = document.getElementById('pedidoLista');
+    let noResultsMessage = document.getElementById('avisoNenhumPedido');
 
 
     // ===============================
-    //    FUNÇÕES GENÉRICAS / HELPERS
+    //      FUNÇÕES GENÉRICAS / HELPERS
     // ===============================
 
     /**
      * Renderiza a forma (círculo, quadrado, hexágono) dentro de um elemento HTML,
-     * aplicando a cor e o ícone/SVG corretos.
+     * aplicando a cor e o ícone/SVG corretos, e adicionando bordas de status.
      * @param {string} elementId - O ID do elemento HTML onde a forma será renderizada.
      * @param {string} shapeType - O tipo de forma ('circle', 'square', 'hexagon').
      * @param {string} montageNumber - O número da montagem (ex: '1', '2', '3') para determinar a cor base.
+     * @param {string} statusClass - Classe CSS para o status da borda (e.g., 'border-status-available', 'border-status-low').
      */
-    function renderShape(elementId, shapeType, montageNumber) {
+    function renderShape(elementId, shapeType, montageNumber, statusClass = 'border-status-default') {
         const element = document.getElementById(elementId);
-        if (!element) return; // Retorna se o elemento não for encontrado
+        if (!element) return;
 
-        // Redefine as classes básicas e limpa o conteúdo HTML
         element.className = 'w-16 h-16 flex items-center justify-center shadow-md transition-all duration-300';
         element.innerHTML = '';
 
         let shapeClass = '';
         let iconHtml = '';
-        const colorClass = MONTAGE_COLORS[montageNumber] || 'bg-gray-100'; // Cor da montagem ou cinza padrão
+        const colorClass = MONTAGE_COLORS[montageNumber] || 'bg-gray-100';
 
         switch (shapeType) {
             case 'circle':
@@ -61,20 +57,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 iconHtml = '<i class="fas fa-circle text-white text-xl"></i>';
                 break;
             case 'square':
-                shapeClass = 'rounded'; // Tailwind: arredondamento padrão
+                shapeClass = 'rounded';
                 iconHtml = '<i class="fas fa-square text-white text-xl"></i>';
                 break;
             case 'hexagon':
-                shapeClass = 'hexagon-shape'; // Classe CSS customizada para clip-path
+                shapeClass = 'hexagon-shape';
                 iconHtml = `<svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
                                 <polygon points="12,2 22,7 22,17 12,22 2,17 2,7"/>
                             </svg>`;
                 break;
-            default: // Caso 'Escolha...' ou valor inválido, define como círculo cinza padrão
-                element.classList.add('bg-gray-100', 'rounded-full');
+            default: // Caso 'Escolha...' ou valor inválido
+                element.classList.add('bg-gray-100', 'rounded-full', 'border-status-default'); // Usa a borda padrão para não selecionado
                 return;
         }
-        element.classList.add(shapeClass, colorClass);
+        element.classList.add(shapeClass, colorClass, statusClass);
         element.innerHTML = iconHtml;
     }
 
@@ -86,14 +82,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const selectElement = document.querySelector(`select[name="${selectName}"]`);
         if (!selectElement) return;
 
-        const globalPieceIndex = parseInt(selectName.replace('peca', '')); // Extrai o número (1-9)
-        const montageNumber = Math.ceil(globalPieceIndex / 3); // Calcula a montagem (1, 2 ou 3)
-        const pieceInMontageIndex = (globalPieceIndex - 1) % 3 + 1; // Posição da peça dentro da montagem (1, 2 ou 3)
+        const globalPieceIndex = parseInt(selectName.replace('peca', ''));
+        const montageNumber = Math.ceil(globalPieceIndex / 3);
+        const pieceInMontageIndex = (globalPieceIndex - 1) % 3 + 1;
 
         const previewId = `peca_pedido${montageNumber}_peca${pieceInMontageIndex}`;
         const selectedShape = selectElement.value;
 
-        renderShape(previewId, selectedShape, montageNumber.toString());
+        // Determina a classe de status visual (ex: border-status-selected se algo foi escolhido)
+        // No futuro, isso poderia vir de uma API de estoque
+        const statusClass = selectedShape ? 'border-status-selected' : 'border-status-default';
+        renderShape(previewId, selectedShape, montageNumber.toString(), statusClass);
     }
 
     /**
@@ -111,12 +110,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // ===============================
-    //    FUNÇÕES "NOVO PEDIDO"
+    //       FUNÇÕES "NOVO PEDIDO"
     // ===============================
 
-    /**
-     * Inicializa os event listeners para todos os seletores de peças no formulário de novo pedido.
-     */
     function initializeNewOrderPieceSelectors() {
         for (let i = 1; i <= 9; i++) {
             const select = document.querySelector(`select[name="peca${i}"]`);
@@ -126,26 +122,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * Lida com o clique no botão de confirmar pedido.
-     * @param {Event} event - O evento de clique.
-     */
     async function handleConfirmOrderClick(event) {
-        event.preventDefault(); // Previne o envio padrão do formulário
+        event.preventDefault();
 
         if (!newOrderForm) return;
 
         const orderData = {};
         let allPiecesSelected = true;
 
-        // Coleta os valores de todas as 9 peças
         for (let i = 1; i <= 9; i++) {
             const select = newOrderForm.querySelector(`select[name="peca${i}"]`);
             if (select && select.value) {
                 orderData[`peca${i}`] = select.value;
             } else {
                 allPiecesSelected = false;
-                break; // Sai do loop se alguma peça não for selecionada
+                break;
             }
         }
 
@@ -155,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const response = await fetch('/pedidos/', { 
+            const response = await fetch('/pedidos/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(orderData),
@@ -168,15 +159,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             alert(`✅ Pedido criado com ID: ${responseData.pedido_id}`);
-            newOrderForm.reset(); // Limpa o formulário após o sucesso
-            // Reseta os previews para o estado inicial
+            newOrderForm.reset();
             for (let i = 1; i <= 9; i++) {
                 updatePiecePreview(`peca${i}`);
             }
 
+            // --- FUTURA INTEGRAÇÃO: Notificar Dashboard via WebSocket ---
+            // Isso seria onde você enviaria uma mensagem para o WebSocket
+            // para que o dashboard atualize em tempo real.
+            // Ex: ws.send(JSON.stringify({ type: 'new_order', order_id: responseData.pedido_id }));
+
         } catch (error) {
             alert(`❌ Erro: ${error.message}`);
-            console.error('Erro detalhado ao confirmar pedido:', error);
+            console.error('Detailed error confirming order:', error);
         }
     }
 
@@ -187,6 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Exibe o modal de detalhes do pedido com os dados fornecidos.
+     * Inclui rotulagem clara para as peças.
      * @param {string} id - O ID do pedido.
      * @param {string} status - O status do pedido.
      * @param {string} piecesString - Uma string das peças separadas por vírgulas (ex: "circle,square,hexagon,...").
@@ -194,49 +190,43 @@ document.addEventListener('DOMContentLoaded', () => {
     function showOrderDetailsModal(id, status, piecesString) {
         modalOrderId.textContent = id;
         modalOrderStatus.textContent = status;
-        modalOrderStatus.className = getStatusClasses(status); // Aplica classes de cor
+        modalOrderStatus.className = getStatusClasses(status);
 
         // Limpar visualizações existentes no pop-up antes de preencher
         for (let m = 1; m <= 3; m++) {
             for (let p = 1; p <= 3; p++) {
                 renderShape(`modal_peca_pedido${m}_peca${p}`, '', ''); // Limpa com cor padrão
+                document.getElementById(`modal_label_pedido${m}_peca${p}`).textContent = ''; // Limpa o rótulo
             }
         }
 
-        const pieces = piecesString.split(','); // Converte string para array de formas
-        
-        if (pieces.length === 9) { // Garante que temos as 9 peças
+        const pieces = piecesString.split(',');
+
+        if (pieces.length === 9) {
+            const pieceNames = { 'circle': 'Círculo', 'hexagon': 'Hexágono', 'square': 'Quadrado' };
             for (let i = 0; i < pieces.length; i++) {
-                const globalPieceIndex = i + 1; // De 1 a 9
-                const montageNumber = Math.ceil(globalPieceIndex / 3); // Montagem 1, 2 ou 3
-                
-                // Posição da peça dentro da visualização da montagem (1, 2 ou 3)
-                // Se o objetivo é que a 1ª selecionada apareça na 1ª posição da visualização,
-                // a 2ª na 2ª, e a 3ª na 3ª.
-                const pieceInDisplayIndex = (globalPieceIndex - 1) % 3 + 1; 
-                
+                const globalPieceIndex = i + 1;
+                const montageNumber = Math.ceil(globalPieceIndex / 3);
+                const pieceInDisplayIndex = (globalPieceIndex - 1) % 3 + 1;
+
                 const previewId = `modal_peca_pedido${montageNumber}_peca${pieceInDisplayIndex}`;
-                renderShape(previewId, pieces[i], montageNumber.toString());
+                const labelId = `modal_label_pedido${montageNumber}_peca${pieceInDisplayIndex}`;
+
+                const pieceType = pieces[i];
+                renderShape(previewId, pieceType, montageNumber.toString(), 'border-status-selected'); // Assume 'selected' para peças existentes
+                document.getElementById(labelId).textContent = `Peça ${pieceInDisplayIndex}: ${pieceNames[pieceType] || 'Desconhecido'}`;
             }
         }
 
-        // Exibe o modal
         orderDetailsModal.classList.remove('hidden');
         orderDetailsModal.classList.add('flex');
     }
 
-    /**
-     * Esconde o modal de detalhes do pedido.
-     */
     function hideOrderDetailsModal() {
         orderDetailsModal.classList.add('hidden');
         orderDetailsModal.classList.remove('flex');
     }
 
-    /**
-     * Adiciona event listeners para os itens da lista de pedidos no histórico
-     * para abrir o modal de detalhes.
-     */
     function initializeHistoricalOrderItems() {
         historicalOrderItems.forEach(item => {
             item.addEventListener('click', function() {
@@ -248,24 +238,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    /**
-     * Configura a funcionalidade de busca no histórico de pedidos.
-     */
     function setupOrderSearch() {
-        // Se não há input de busca ou lista de pedidos, não inicializa a busca
-        if (!searchInput || !orderList) return; 
+        if (!searchInput || !orderList) return;
 
-        // Cria a mensagem "Pedido não encontrado" se ela ainda não existir
         if (!noResultsMessage) {
             noResultsMessage = document.createElement('p');
             noResultsMessage.id = 'avisoNenhumPedido';
             noResultsMessage.className = 'text-center text-red-600 mt-4 font-semibold';
             noResultsMessage.textContent = 'Pedido não encontrado.';
-            // Encontrar o pai para inserir a mensagem (acima do footer, abaixo da lista)
             orderList.parentNode.appendChild(noResultsMessage);
         }
-        noResultsMessage.style.display = 'none'; // Garante que esteja escondida por padrão
-
+        noResultsMessage.style.display = 'none';
 
         function filterOrders() {
             const query = searchInput.value.trim().toLowerCase();
@@ -276,51 +259,78 @@ document.addEventListener('DOMContentLoaded', () => {
                 const status = item.dataset.status.toLowerCase();
 
                 if (id.includes(query) || status.includes(query)) {
-                    item.style.display = 'flex'; // Exibe o item
+                    item.style.display = 'flex';
                     found = true;
                 } else {
-                    item.style.display = 'none'; // Esconde o item
+                    item.style.display = 'none';
                 }
             });
 
-            noResultsMessage.style.display = found ? 'none' : 'block'; // Mostra/esconde a mensagem
+            noResultsMessage.style.display = found ? 'none' : 'block';
         }
 
         searchInput.addEventListener('input', filterOrders);
         searchInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
-                event.preventDefault(); // Previne o envio do formulário
+                event.preventDefault();
                 filterOrders();
             }
         });
     }
 
-
     // ===============================
-    //      INICIALIZAÇÃO GERAL
+    //         INICIALIZAÇÃO GERAL
     // ===============================
 
-    // Lógica para a página "Novo Pedido"
-    if (newOrderForm) { 
+    // --- FUTURA INTEGRAÇÃO: WebSockets para Dashboard ---
+    // Exemplo de como você iniciaria uma conexão WebSocket:
+    /*
+    if (window.location.pathname === '/') { // Apenas na página do dashboard
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        const wsURL = wsProtocol + window.location.host + '/ws/dashboard/'; // Seu endpoint WebSocket
+        const ws = new WebSocket(wsURL);
+
+        ws.onopen = (event) => {
+            console.log('WebSocket connected:', event);
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log('Received message:', data);
+            // Aqui você processaria os dados recebidos (e.g., status de estoque, novos pedidos)
+            // e atualizaria os elementos do DOM no dashboard.
+            // Ex: updateStockDisplay(data.stock_data);
+            // Ex: updateOrderStatus(data.order_data);
+        };
+
+        ws.onclose = (event) => {
+            console.log('WebSocket closed:', event);
+            // Tentar reconectar após um atraso
+        };
+
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+    }
+    */
+
+    if (newOrderForm) {
         initializeNewOrderPieceSelectors();
-        // Atualiza previews iniciais para todos os 9 campos (se houver valores pré-selecionados)
         for (let i = 1; i <= 9; i++) {
-            updatePiecePreview(`peca${i}`); 
+            updatePiecePreview(`peca${i}`);
         }
         confirmOrderButton.addEventListener('click', handleConfirmOrderClick);
     }
 
-    // Lógica para o Modal de Detalhes do Pedido
-    if (orderDetailsModal) { // Verifica se o modal está presente na página
+    if (orderDetailsModal) {
         closeModalButton.addEventListener('click', hideOrderDetailsModal);
         orderDetailsModal.addEventListener('click', (event) => {
-            if (event.target === orderDetailsModal) { // Clicou no overlay
+            if (event.target === orderDetailsModal) {
                 hideOrderDetailsModal();
             }
         });
-        initializeHistoricalOrderItems(); // Inicializa listeners para itens do histórico
+        initializeHistoricalOrderItems();
     }
 
-    // Lógica para a Busca no Histórico
     setupOrderSearch();
 });

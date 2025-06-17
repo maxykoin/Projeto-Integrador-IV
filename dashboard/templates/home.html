@@ -1,4 +1,4 @@
-{% load static %} 
+{% load static %}
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8" />
@@ -7,24 +7,25 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" href="https://cdn.iconscout.com/icon/free/png-256/free-bosch-3442885-2875346.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
-<body class="bg-white min-h-screen flex flex-col font-poppins">
-    
-    <header class="flex items-center gap-6 px-6 py-4 shadow-lg" style="background: url(https://www.boschmediaservice.hu/storage/publication/118_w1600.jpg); background-size: cover; background-position: center;">
-        <a href="/" aria-label="Página Inicial" class="text-white text-3xl hover:opacity-75 transition-opacity"> {# Usar opacity para hover #}
+<body class="bg-gray-50 min-h-screen flex flex-col font-poppins">
+
+    <header class="flex items-center gap-6 px-6 py-4 shadow-lg sticky top-0 z-40" style="background: url(https://www.boschmediaservice.hu/storage/publication/118_w1600.jpg); background-size: cover; background-position: center;">
+        <a href="/" aria-label="Página Inicial" class="text-white text-3xl hover:opacity-75 transition-opacity active-scale-95" data-tooltip="Ir para o Dashboard">
             <i class="fas fa-home"></i>
         </a>
-        <a href="/pedidos/" aria-label="Novo Pedido" class="text-white text-3xl hover:opacity-75 transition-opacity">
+        <a href="/pedidos/" aria-label="Novo Pedido" class="text-white text-3xl hover:opacity-75 transition-opacity active-scale-95" data-tooltip="Criar um Novo Pedido">
             <i class="fas fa-plus-circle"></i>
         </a>
-        <a href="/pedidos/historico" aria-label="Histórico de Pedidos" class="text-white text-3xl hover:opacity-75 transition-opacity">
+        <a href="/pedidos/historico" aria-label="Histórico de Pedidos" class="text-white text-3xl hover:opacity-75 transition-opacity active-scale-95" data-tooltip="Ver Histórico de Pedidos">
             <i class="fas fa-list"></i>
         </a>
     </header>
 
-    {# Seção de alerta de estoque baixo #}
     {% if circulo < 2 or hexagono < 2 or quadrado < 2 %}
-    <section aria-live="assertive" role="alert" class="max-w-3xl mx-auto mt-4 px-4 py-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-center shadow-md">
+    <section aria-live="assertive" role="alert" class="max-w-3xl mx-auto mt-6 px-4 py-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-center shadow-md active-scale-95" data-tooltip="Alerta de Estoque Baixo">
         <i class="fas fa-exclamation-triangle mr-2"></i>
         Atenção: Estoque baixo em
         {% if circulo < 2 %} <strong>Círculo</strong>{% if hexagono < 2 or quadrado < 2 %}, {% endif %}{% endif %}
@@ -34,64 +35,58 @@
     </section>
     {% endif %}
 
-    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" role="main" aria-label="Dashboard do estoque">
-        <h1 class="text-center text-3xl font-extrabold text-gray-900 mb-12">Dashboard de Estoque</h1>
+<main class="flex-grow w-full px-4 sm:px-6 lg:px-8 py-8" role="main" aria-label="Dashboard do estoque">
+    <h1 class="text-center text-4xl font-extrabold text-gray-800 mb-12 tracking-tight">Dashboard de Estoque</h1>
 
-        {# Indicadores gerais do sistema #}
-        <section aria-label="Indicadores gerais do sistema" class="max-w-4xl mx-auto mb-12 flex flex-wrap justify-center gap-6">
-            <div class="bg-purple-700 text-white rounded-xl shadow-md p-5 flex flex-col items-center justify-center min-w-[180px]">
-                <p class="text-xs uppercase tracking-wide font-semibold mb-1">Total de Pedidos</p>
-                <p class="text-4xl font-bold select-none">{{ entregue|add:em_andamento }}</p>
+    <div class="border-t border-gray-300 mb-12 w-full max-w-6xl mx-auto"></div>
+
+    {# Indicadores gerais do sistema #}
+    <section aria-label="Indicadores gerais do sistema" class="max-w-6xl mx-auto mb-12 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-8 flex flex-col items-center justify-center min-w-[280px] hover-scale-105 active-scale-95" data-tooltip="Total de pedidos já realizados">
+            <p class="text-sm uppercase tracking-wide font-semibold mb-3 text-gray-700">Total de Pedidos</p>
+            <p class="text-6xl font-bold select-none text-gray-900">{{ entregue|add:em_andamento }}</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-8 flex flex-col items-center justify-center min-w-[280px] hover-scale-105 active-scale-95" data-tooltip="Pedidos atualmente em processamento">
+            <p class="text-sm uppercase tracking-wide font-semibold mb-3 text-gray-700">Pedidos em Andamento</p>
+            <p class="text-6xl font-bold select-none text-gray-900">{{ em_andamento }}</p>
+        </div>
+    </section>
+
+    <div class="border-t border-gray-300 mb-12 w-full max-w-6xl mx-auto"></div>
+
+    {# Seção de resumo das formas em estoque com seus respectivos contadores #}
+    <section aria-label="Resumo das formas em estoque" class="max-w-6xl mx-auto mb-16">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
+            {# Círculo #}
+            <div class="bg-[#1CA1C6] rounded-xl shadow-lg p-8 flex flex-col items-center justify-center text-white hover-scale-105 active-scale-95" data-tooltip="Quantidade de peças tipo Círculo em estoque">
+                <div class="flex items-center justify-center w-32 h-32 rounded-full border-4 border-white mb-4">
+                    <span id="circulo" class="text-7xl font-light leading-none select-none">{{ circulo }}</span>
+                </div>
+                <p class="mt-2 text-2xl font-semibold">Círculo</p>
             </div>
 
-            <div class="bg-blue-600 text-white rounded-xl shadow-md p-5 flex flex-col items-center justify-center min-w-[180px]">
-                <p class="text-xs uppercase tracking-wide font-semibold mb-1">Pedidos em Andamento</p>
-                <p class="text-4xl font-bold select-none">{{ em_andamento }}</p> {# Alterado para 4xl para consistência visual com o total #}
+            {# Hexágono #}
+            <div class="bg-[#8ABF7A] rounded-xl shadow-lg p-8 flex flex-col items-center justify-center text-white hover-scale-105 active-scale-95 relative" data-tooltip="Quantidade de peças tipo Hexágono em estoque">
+                <div class="relative w-36 h-36 flex items-center justify-center mb-4">
+                    <svg aria-hidden="true" width="144" height="128" viewBox="0 0 112 96" fill="none" xmlns="http://www.w3.org/2000/svg" class="absolute inset-0 m-auto">
+                        <polygon points="28 0 84 0 112 48 84 96 28 96 0 48" stroke="white" stroke-width="6" fill="transparent" />
+                    </svg>
+                    <span id="hexagono" class="relative text-7xl font-light leading-none z-10">{{ hexagono }}</span>
+                </div>
+                <p class="mt-2 text-2xl font-semibold">Hexágono</p>
             </div>
 
-            <button
-                id="atualizarBtn"
-                type="button"
-                class="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-full shadow-md transition min-w-[180px] flex items-center justify-center" {# Adicionado flex classes para centralizar ícone e texto #}
-                aria-label="Atualizar dados do dashboard"
-            >
-                <i class="fas fa-sync-alt mr-2"></i> Atualizar Dados
-            </button>
-        </section>
-
-        {# Seção de resumo das formas em estoque com seus respectivos contadores #}
-        <section aria-label="Resumo das formas em estoque" class="max-w-4xl mx-auto mb-16">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-12">
-                {# Círculo #}
-                <div class="bg-[#1CA1C6] rounded-xl shadow-md p-6 flex flex-col items-center justify-center text-white transition hover:shadow-xl">
-                    <div class="flex items-center justify-center w-24 h-24 rounded-full border-4 border-white">
-                        <span id="circulo" class="text-6xl font-light leading-none select-none">{{ circulo }}</span>
-                    </div>
-                    <p class="mt-5 text-xl font-semibold">Círculo</p>
+            {# Quadrado #}
+            <div class="bg-[#4B4382] rounded-xl shadow-lg p-8 flex flex-col items-center justify-center text-white hover-scale-105 active-scale-95" data-tooltip="Quantidade de peças tipo Quadrado em estoque">
+                <div class="flex items-center justify-center w-32 h-32 border-4 border-white mb-4">
+                    <span id="quadrado" class="text-7xl font-light leading-none select-none">{{ quadrado }}</span>
                 </div>
-
-                {# Hexágono #}
-                <div class="bg-[#8ABF7A] rounded-xl shadow-md p-6 flex flex-col items-center justify-center text-white transition hover:shadow-xl relative">
-                    <div class="relative w-28 h-28 flex items-center justify-center mb-4">
-                        {# SVG para o hexágono, usando aria-hidden para acessibilidade #}
-                        <svg aria-hidden="true" width="112" height="96" viewBox="0 0 112 96" fill="none" xmlns="http://www.w3.org/2000/svg" class="absolute inset-0 m-auto">
-                            <polygon points="28 0 84 0 112 48 84 96 28 96 0 48" stroke="white" stroke-width="6" fill="transparent" />
-                        </svg>
-                        <span id="hexagono" class="relative text-6xl font-light leading-none z-10">{{ hexagono }}</span>
-                    </div>
-                    <p class="mt-2 text-xl font-semibold">Hexágono</p>
-                </div>
-
-                {# Quadrado #}
-                <div class="bg-[#4B4382] rounded-xl shadow-md p-6 flex flex-col items-center justify-center text-white transition hover:shadow-xl">
-                    <div class="flex items-center justify-center w-24 h-24 border-4 border-white">
-                        <span id="quadrado" class="text-6xl font-light leading-none select-none">{{ quadrado }}</span>
-                    </div>
-                    <p class="mt-5 text-xl font-semibold">Quadrado</p>
-                </div>
+                <p class="mt-2 text-2xl font-semibold">Quadrado</p>
             </div>
-        </section>
-    </main>
+        </div>
+    </section>
+</main>
 
     <footer class="bg-gray-800 text-white text-center p-4 shadow-inner">
         <p>&copy; 2025 Projeto Integrador IV. Todos os direitos reservados.</p>
