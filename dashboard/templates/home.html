@@ -8,7 +8,7 @@
     <link rel="icon" href="https://cdn.iconscout.com/icon/free/png-256/free-bosch-3442885-2875346.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}"> {# Caminho ajustado para 'css/style.css' #}
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col font-poppins">
 
@@ -24,13 +24,14 @@
         </a>
     </header>
 
-    {% if circulo < 2 or hexagono < 2 or quadrado < 2 %}
-    <section aria-live="assertive" role="alert" class="max-w-3xl mx-auto mt-6 px-4 py-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-center shadow-md active-scale-95" data-tooltip="Alerta de Estoque Baixo">
+    {# Seção de alerta de estoque baixo #}
+    {% if circulo_low_stock or hexagono_low_stock or quadrado_low_stock %}
+    <section aria-live="assertive" role="alert" class="max-w-3xl mx-auto mt-6 px-4 py-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-center shadow-md hover-scale-105" data-tooltip="Alerta de Estoque Baixo"> {# Removido active-scale-95 para não 'pular' no clique, hover é o suficiente #}
         <i class="fas fa-exclamation-triangle mr-2"></i>
         Atenção: Estoque baixo em
-        {% if circulo < 2 %} <strong>Círculo</strong>{% if hexagono < 2 or quadrado < 2 %}, {% endif %}{% endif %}
-        {% if hexagono < 2 %} <strong>Hexágono</strong>{% if quadrado < 2 %}, {% endif %}{% endif %}
-        {% if quadrado < 2 %} <strong>Quadrado</strong>{% endif %}.
+        {% if circulo_low_stock %} <strong>Círculo</strong>{% if hexagono_low_stock or quadrado_low_stock %}, {% endif %}{% endif %}
+        {% if hexagono_low_stock %} <strong>Hexágono</strong>{% if quadrado_low_stock %}, {% endif %}{% endif %}
+        {% if quadrado_low_stock %} <strong>Quadrado</strong>{% endif %}.
         Considere realizar a realimentação.
     </section>
     {% endif %}
@@ -44,7 +45,7 @@
     <section aria-label="Indicadores gerais do sistema" class="max-w-6xl mx-auto mb-12 grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-8 flex flex-col items-center justify-center min-w-[280px] hover-scale-105 active-scale-95" data-tooltip="Total de pedidos já realizados">
             <p class="text-sm uppercase tracking-wide font-semibold mb-3 text-gray-700">Total de Pedidos</p>
-            <p class="text-6xl font-bold select-none text-gray-900">{{ entregue|add:em_andamento }}</p>
+            <p class="text-6xl font-bold select-none text-gray-900">{{ concluido|add:em_andamento }}</p> {# Usando 'concluido' do contexto da view #}
         </div>
 
         <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-8 flex flex-col items-center justify-center min-w-[280px] hover-scale-105 active-scale-95" data-tooltip="Pedidos atualmente em processamento">
@@ -56,10 +57,11 @@
     <div class="border-t border-gray-300 mb-12 w-full max-w-6xl mx-auto"></div>
 
     {# Seção de resumo das formas em estoque com seus respectivos contadores #}
+    {# Esta seção será mais dinâmica se você usar all_stock_info #}
     <section aria-label="Resumo das formas em estoque" class="max-w-6xl mx-auto mb-16">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
             {# Círculo #}
-            <div class="bg-[#1CA1C6] rounded-xl shadow-lg p-8 flex flex-col items-center justify-center text-white hover-scale-105 active-scale-95" data-tooltip="Quantidade de peças tipo Círculo em estoque">
+            <div class="bg-[#1CA1C6] rounded-xl shadow-lg p-8 flex flex-col items-center justify-center text-white hover-scale-105 active-scale-95 {% if circulo_low_stock %}border-4 border-red-500{% endif %}" data-tooltip="Quantidade de peças tipo Círculo em estoque"> {# Adicionado borda vermelha se for estoque baixo #}
                 <div class="flex items-center justify-center w-32 h-32 rounded-full border-4 border-white mb-4">
                     <span id="circulo" class="text-7xl font-light leading-none select-none">{{ circulo }}</span>
                 </div>
@@ -67,7 +69,7 @@
             </div>
 
             {# Hexágono #}
-            <div class="bg-[#8ABF7A] rounded-xl shadow-lg p-8 flex flex-col items-center justify-center text-white hover-scale-105 active-scale-95 relative" data-tooltip="Quantidade de peças tipo Hexágono em estoque">
+            <div class="bg-[#8ABF7A] rounded-xl shadow-lg p-8 flex flex-col items-center justify-center text-white hover-scale-105 active-scale-95 relative {% if hexagono_low_stock %}border-4 border-red-500{% endif %}" data-tooltip="Quantidade de peças tipo Hexágono em estoque"> {# Adicionado borda vermelha se for estoque baixo #}
                 <div class="relative w-36 h-36 flex items-center justify-center mb-4">
                     <svg aria-hidden="true" width="144" height="128" viewBox="0 0 112 96" fill="none" xmlns="http://www.w3.org/2000/svg" class="absolute inset-0 m-auto">
                         <polygon points="28 0 84 0 112 48 84 96 28 96 0 48" stroke="white" stroke-width="6" fill="transparent" />
@@ -78,13 +80,14 @@
             </div>
 
             {# Quadrado #}
-            <div class="bg-[#4B4382] rounded-xl shadow-lg p-8 flex flex-col items-center justify-center text-white hover-scale-105 active-scale-95" data-tooltip="Quantidade de peças tipo Quadrado em estoque">
+            <div class="bg-[#4B4382] rounded-xl shadow-lg p-8 flex flex-col items-center justify-center text-white hover-scale-105 active-scale-95 {% if quadrado_low_stock %}border-4 border-red-500{% endif %}" data-tooltip="Quantidade de peças tipo Quadrado em estoque"> {# Adicionado borda vermelha se for estoque baixo #}
                 <div class="flex items-center justify-center w-32 h-32 border-4 border-white mb-4">
                     <span id="quadrado" class="text-7xl font-light leading-none select-none">{{ quadrado }}</span>
                 </div>
                 <p class="mt-2 text-2xl font-semibold">Quadrado</p>
             </div>
         </div>
+        {# Se você quiser, pode reintroduzir o botão "Atualizar Dados" aqui, ou removê-lo completamente se for usar WebSockets #}
     </section>
 </main>
 

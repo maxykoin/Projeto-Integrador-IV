@@ -57,6 +57,8 @@
 .border-status-selected { border-color: #a78bfa; border-width: 3px; /* Tailwind purple-400 */ }
 .border-status-default { border-color: #d1d5db; border-width: 3px; /* Tailwind gray-300 */ }
 
+/* ... seu CSS existente ... */
+
 /* Microinterações para elementos clicáveis */
 .hover-scale-105 {
     transform: scale(1);
@@ -70,3 +72,11 @@
     transform: scale(0.95);
     transition: transform 0.1s ease-out;
 }
+
+/* NOVO: Ajuste para elementos select */
+/* Impedir que o dropdown 'pule' ao clicar */
+select.active-scale-95:active {
+    transform: scale(1); /* Não escala no clique */
+    transition: none;    /* Remove a transição no clique para evitar pulos */
+}
+/* Ou, se você quiser remover totalmente a classe do select no HTML, esta regra não é necessária. */

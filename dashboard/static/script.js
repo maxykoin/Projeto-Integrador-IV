@@ -10,6 +10,13 @@ document.addEventListener('DOMContentLoaded', () => {
         '3': 'bg-green-600'
     };
 
+    // NOVO: Mapeamento de ID da peça para o seu 'tipo' (shape) e nome de exibição
+    const PIECE_ID_TO_DETAILS = {
+        '1': { type: 'circulo', name: 'Círculo' },
+        '2': { type: 'hexagono', name: 'Hexágono' },
+        '3': { type: 'quadrado', name: 'Quadrado' }
+    };
+
     // ===============================
     //         ELEMENTOS DO DOM
     // ===============================
@@ -33,14 +40,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===============================
 
     /**
-     * Renderiza a forma (círculo, quadrado, hexágono) dentro de um elemento HTML,
-     * aplicando a cor e o ícone/SVG corretos, e adicionando bordas de status.
-     * @param {string} elementId - O ID do elemento HTML onde a forma será renderizada.
-     * @param {string} shapeType - O tipo de forma ('circle', 'square', 'hexagon').
-     * @param {string} montageNumber - O número da montagem (ex: '1', '2', '3') para determinar a cor base.
-     * @param {string} statusClass - Classe CSS para o status da borda (e.g., 'border-status-available', 'border-status-low').
+     * Renderiza a forma (círculo, quadrado, hexágono) dentro de um elemento HTML.
+     * Agora, 'pieceIdentifier' pode ser o ID da peça (1, 2, 3) ou o 'tipo' (circulo, hexagono, quadrado).
+     * A função traduz o ID para o 'tipo' para a lógica de forma.
+     * @param {string} elementId - O ID do elemento HTML.
+     * @param {string|number} pieceIdentifier - O ID da peça (1, 2, 3) ou o tipo de forma ('circulo', 'hexagono', 'quadrado').
+     * @param {string} montageNumber - O número da montagem.
+     * @param {string} statusClass - Classe CSS para o status da borda.
      */
-    function renderShape(elementId, shapeType, montageNumber, statusClass = 'border-status-default') {
+    function renderShape(elementId, pieceIdentifier, montageNumber, statusClass = 'border-status-default') {
         const element = document.getElementById(elementId);
         if (!element) return;
 
@@ -51,23 +59,32 @@ document.addEventListener('DOMContentLoaded', () => {
         let iconHtml = '';
         const colorClass = MONTAGE_COLORS[montageNumber] || 'bg-gray-100';
 
+        // Traduz o ID ou usa o tipo diretamente
+        let shapeType = '';
+        if (typeof pieceIdentifier === 'number' || (typeof pieceIdentifier === 'string' && !isNaN(pieceIdentifier))) {
+            const pieceDetails = PIECE_ID_TO_DETAILS[pieceIdentifier.toString()];
+            shapeType = pieceDetails ? pieceDetails.type : 'unknown';
+        } else {
+            shapeType = pieceIdentifier; // Já é o tipo (ex: 'circulo')
+        }
+
         switch (shapeType) {
-            case 'circle':
+            case 'circulo':
                 shapeClass = 'rounded-full';
                 iconHtml = '<i class="fas fa-circle text-white text-xl"></i>';
                 break;
-            case 'square':
+            case 'quadrado':
                 shapeClass = 'rounded';
                 iconHtml = '<i class="fas fa-square text-white text-xl"></i>';
                 break;
-            case 'hexagon':
+            case 'hexagono':
                 shapeClass = 'hexagon-shape';
                 iconHtml = `<svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
                                 <polygon points="12,2 22,7 22,17 12,22 2,17 2,7"/>
                             </svg>`;
                 break;
-            default: // Caso 'Escolha...' ou valor inválido
-                element.classList.add('bg-gray-100', 'rounded-full', 'border-status-default'); // Usa a borda padrão para não selecionado
+            default:
+                element.classList.add('bg-gray-100', 'rounded-full', 'border-status-default');
                 return;
         }
         element.classList.add(shapeClass, colorClass, statusClass);
@@ -87,23 +104,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const pieceInMontageIndex = (globalPieceIndex - 1) % 3 + 1;
 
         const previewId = `peca_pedido${montageNumber}_peca${pieceInMontageIndex}`;
-        const selectedShape = selectElement.value;
+        const selectedPieceId = selectElement.value; // O valor aqui será o ID (1, 2, 3)
 
-        // Determina a classe de status visual (ex: border-status-selected se algo foi escolhido)
-        // No futuro, isso poderia vir de uma API de estoque
-        const statusClass = selectedShape ? 'border-status-selected' : 'border-status-default';
-        renderShape(previewId, selectedShape, montageNumber.toString(), statusClass);
+        const statusClass = selectedPieceId ? 'border-status-selected' : 'border-status-default';
+        // Passa o ID da peça para renderShape
+        renderShape(previewId, selectedPieceId, montageNumber.toString(), statusClass);
     }
 
-    /**
-     * Mapeia o status do pedido para as classes de cor do Tailwind.
-     * @param {string} status - O status do pedido (ex: 'em_andamento', 'entregue').
-     * @returns {string} As classes CSS para o status.
-     */
     function getStatusClasses(status) {
         switch (status) {
             case "em_andamento": return 'font-semibold text-yellow-600';
-            case "entregue": return 'font-semibold text-green-600';
+            case "concluido": return 'font-semibold text-green-600';
             default: return 'font-semibold text-gray-600';
         }
     }
@@ -133,7 +144,8 @@ document.addEventListener('DOMContentLoaded', () => {
         for (let i = 1; i <= 9; i++) {
             const select = newOrderForm.querySelector(`select[name="peca${i}"]`);
             if (select && select.value) {
-                orderData[`peca${i}`] = select.value;
+                // O valor aqui é o ID da peça (string "1", "2", "3")
+                orderData[`peca${i}`] = parseInt(select.value); // Converte para int para enviar para o backend
             } else {
                 allPiecesSelected = false;
                 break;
@@ -164,11 +176,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 updatePiecePreview(`peca${i}`);
             }
 
-            // --- FUTURA INTEGRAÇÃO: Notificar Dashboard via WebSocket ---
-            // Isso seria onde você enviaria uma mensagem para o WebSocket
-            // para que o dashboard atualize em tempo real.
-            // Ex: ws.send(JSON.stringify({ type: 'new_order', order_id: responseData.pedido_id }));
-
         } catch (error) {
             alert(`❌ Erro: ${error.message}`);
             console.error('Detailed error confirming order:', error);
@@ -185,14 +192,13 @@ document.addEventListener('DOMContentLoaded', () => {
      * Inclui rotulagem clara para as peças.
      * @param {string} id - O ID do pedido.
      * @param {string} status - O status do pedido.
-     * @param {string} piecesString - Uma string das peças separadas por vírgulas (ex: "circle,square,hexagon,...").
+     * @param {string} piecesIdsString - Uma string dos IDs das peças separadas por vírgulas (ex: "1,2,3,...").
      */
-    function showOrderDetailsModal(id, status, piecesString) {
+    function showOrderDetailsModal(id, status, piecesIdsString) {
         modalOrderId.textContent = id;
         modalOrderStatus.textContent = status;
         modalOrderStatus.className = getStatusClasses(status);
 
-        // Limpar visualizações existentes no pop-up antes de preencher
         for (let m = 1; m <= 3; m++) {
             for (let p = 1; p <= 3; p++) {
                 renderShape(`modal_peca_pedido${m}_peca${p}`, '', ''); // Limpa com cor padrão
@@ -200,11 +206,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        const pieces = piecesString.split(',');
+        const piecesIds = piecesIdsString.split(',').map(Number); // Converte para array de números
 
-        if (pieces.length === 9) {
-            const pieceNames = { 'circle': 'Círculo', 'hexagon': 'Hexágono', 'square': 'Quadrado' };
-            for (let i = 0; i < pieces.length; i++) {
+        if (piecesIds.length === 9) {
+            for (let i = 0; i < piecesIds.length; i++) {
                 const globalPieceIndex = i + 1;
                 const montageNumber = Math.ceil(globalPieceIndex / 3);
                 const pieceInDisplayIndex = (globalPieceIndex - 1) % 3 + 1;
@@ -212,9 +217,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const previewId = `modal_peca_pedido${montageNumber}_peca${pieceInDisplayIndex}`;
                 const labelId = `modal_label_pedido${montageNumber}_peca${pieceInDisplayIndex}`;
 
-                const pieceType = pieces[i];
-                renderShape(previewId, pieceType, montageNumber.toString(), 'border-status-selected'); // Assume 'selected' para peças existentes
-                document.getElementById(labelId).textContent = `Peça ${pieceInDisplayIndex}: ${pieceNames[pieceType] || 'Desconhecido'}`;
+                const pieceId = piecesIds[i]; // ID da peça (1, 2, 3)
+                const pieceDetails = PIECE_ID_TO_DETAILS[pieceId.toString()]; // Obtém os detalhes pelo ID
+
+                if (pieceDetails) {
+                    renderShape(previewId, pieceId, montageNumber.toString(), 'border-status-selected');
+                    document.getElementById(labelId).textContent = `Peça ${pieceInDisplayIndex}: ${pieceDetails.name}`;
+                } else {
+                     renderShape(previewId, 'unknown', montageNumber.toString()); // Renderiza como desconhecido
+                     document.getElementById(labelId).textContent = `Peça ${pieceInDisplayIndex}: Desconhecido`;
+                }
             }
         }
 
@@ -232,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
             item.addEventListener('click', function() {
                 const id = this.dataset.id;
                 const status = this.dataset.status;
-                const pieces = this.dataset.pecas;
+                const pieces = this.dataset.pecas; // Agora contém IDs separados por vírgula
                 showOrderDetailsModal(id, status, pieces);
             });
         });
@@ -281,38 +293,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===============================
     //         INICIALIZAÇÃO GERAL
     // ===============================
-
-    // --- FUTURA INTEGRAÇÃO: WebSockets para Dashboard ---
-    // Exemplo de como você iniciaria uma conexão WebSocket:
-    /*
-    if (window.location.pathname === '/') { // Apenas na página do dashboard
-        const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-        const wsURL = wsProtocol + window.location.host + '/ws/dashboard/'; // Seu endpoint WebSocket
-        const ws = new WebSocket(wsURL);
-
-        ws.onopen = (event) => {
-            console.log('WebSocket connected:', event);
-        };
-
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            console.log('Received message:', data);
-            // Aqui você processaria os dados recebidos (e.g., status de estoque, novos pedidos)
-            // e atualizaria os elementos do DOM no dashboard.
-            // Ex: updateStockDisplay(data.stock_data);
-            // Ex: updateOrderStatus(data.order_data);
-        };
-
-        ws.onclose = (event) => {
-            console.log('WebSocket closed:', event);
-            // Tentar reconectar após um atraso
-        };
-
-        ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
-        };
-    }
-    */
 
     if (newOrderForm) {
         initializeNewOrderPieceSelectors();

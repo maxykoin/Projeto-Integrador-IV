@@ -8,7 +8,7 @@
     <link rel="icon" href="https://cdn.iconscout.com/icon/free/png-256/free-bosch-3442885-2875346.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
 </head>
 <body class="flex flex-col min-h-screen bg-gray-50 font-poppins">
 
@@ -42,21 +42,21 @@
                         <li class="pedido-item w-full flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-lg shadow-sm cursor-pointer hover:bg-gray-100 transition-colors duration-200 hover-scale-105 active-scale-95"
                             data-id="{{ pedido.id }}"
                             data-status="{{ pedido.status }}"
-                            data-pecas="{{ pedido.pecas_list|join:',' }}"
+                            data-pecas="{{ pedido.pecas_list_ids|join:',' }}" {# CORRIGIDO: Agora passa pecas_list_ids #}
                             aria-label="Detalhes do pedido {{ pedido.id }}, status {{ pedido.status }}"
-                            role="listitem"
-                            data-tooltip="Clique para ver os detalhes deste pedido">
+                            role="listitem">
 
                             <div class="mb-4 sm:mb-0 sm:max-w-xs">
                                 <p class="text-sm text-gray-600">Pedido ID: <span class="font-semibold text-gray-800">{{ pedido.id }}</span></p>
+                                <p class="text-sm text-gray-600">Data: <span class="font-semibold text-gray-800">{{ pedido.data }}</span></p>
                                 <p class="text-sm text-gray-600">
                                     Status:
                                     {% if pedido.status == "em_andamento" %}
                                         <span class="text-yellow-600 font-semibold">Em andamento</span>
-                                    {% elif pedido.status == "entregue" %}
-                                        <span class="text-green-600 font-semibold">Entregue</span>
+                                    {% elif pedido.status == "concluido" %}
+                                        <span class="text-green-600 font-semibold">Concluído</span>
                                     {% else %}
-                                        <span class="text-gray-600">{{ pedido.status }}</span>
+                                        <span class="text-gray-600">{{ pedido.status|capfirst }}</span>
                                     {% endif %}
                                 </p>
                             </div>
@@ -71,11 +71,7 @@
         </div>
     </main>
 
-    <footer class="bg-gray-800 text-white text-center p-4 shadow-inner">
-        <p>&copy; 2025 Projeto Integrador IV. Todos os direitos reservados.</p>
-    </footer>
-
-    {# Pop-up (Modal) para Detalhes do Pedido - Escondido por padrão #}
+    {# Pop-up (Modal) para Detalhes do Pedido #}
     <div id="pedido-modal" class="fixed inset-0 hidden items-center justify-center modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-pedido-id">
         <div class="bg-white p-8 rounded-xl shadow-2xl border border-gray-300 w-11/12 max-w-4xl modal-content relative">
             <button id="close-modal-btn" aria-label="Fechar detalhes do pedido" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 rounded-full active-scale-95">
@@ -91,7 +87,7 @@
                         <div class="mt-6">
                             <h4 class="text-lg font-semibold mb-3 text-center text-gray-700">Visualização</h4>
                             <div class="flex flex-col gap-2 items-center">
-                                {# Rotulagem Clara: Adicionado um <p> para o nome da peça #}
+                                {# Divs para as peças, preenchidas pelo JS #}
                                 <p id="modal_label_pedido{{ forloop.counter }}_peca1" class="text-sm text-gray-600 mb-1"></p>
                                 <div id="modal_peca_pedido{{ forloop.counter }}_peca1" class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center shadow-inner transition-all duration-300 border-status-default" data-tooltip="Visualização da peça 1 desta montagem"></div>
                                 <p id="modal_label_pedido{{ forloop.counter }}_peca2" class="text-sm text-gray-600 mb-1"></p>
@@ -105,7 +101,7 @@
             </div>
         </div>
     </div>
-
+    
     <script src="{% static 'script.js' %}" defer></script>
 </body>
 </html>
