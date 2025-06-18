@@ -1,3 +1,5 @@
+# settings.py
+
 """
 Django settings for setup project.
 
@@ -28,7 +30,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*'] # Changed to '*' for easier testing, but specify domains in production
 
 
 # Application definition
@@ -41,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'dashboard',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -58,7 +61,7 @@ ROOT_URLCONF = 'setup.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')], # Adicionei um diretório 'templates' geral para base.html
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -72,10 +75,25 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'setup.wsgi.application'
+# ASGI application for Django Channels
+ASGI_APPLICATION = 'setup.asgi.application'
+
+# Channel Layer Configuration (requires Redis or other backend for production)
+# For development, an in-memory channel layer is fine.
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer', # Use InMemoryChannelLayer para desenvolvimento
+        # Para produção, você usaria algo como:
+        # 'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        # 'CONFIG': {
+        #     "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379/1')],
+        # },
+    },
+}
 
 
 # Database
-# https://docs.djangoproject.com/en/3.1/ref/settings/#databases
+# https://docs.djangoproject.com/en/3.1/ref/databases/#databases
 
 DATABASES = {
     'default': {
@@ -125,6 +143,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATICFILES_DIRS = [
-  os.path.join(BASE_DIR, "static"),
-]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static"),]
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

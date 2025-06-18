@@ -1,3 +1,4 @@
+# dashboard/models.py
 
 from djongo import models
 from django.utils import timezone
@@ -21,7 +22,6 @@ TIPO_FORMA_CHOICES = [
 # Modelo para "Peça" (agora com ID Fixo e Quantidade em Estoque)
 class Peca(models.Model):
     # Definimos 'id' como PrimaryKey, mas ele NÃO será auto-incrementado automaticamente por Django/Djongo.
-    # Você terá que DEFINIR o ID (1, 2, 3) manualmente ao criar a peça no admin ou via script.
     id = models.IntegerField(primary_key=True, verbose_name="ID da Peça (1=Círculo, 2=Hexágono, 3=Quadrado)")
     
     name = models.CharField(max_length=100, unique=True, verbose_name="Nome da Peça")
@@ -73,13 +73,17 @@ class Pedido(models.Model):
 # Modelo para "Estoque"
 # Este modelo armazena a quantidade de cada tipo de peça em estoque
 class Estoque(models.Model):
-    # O 'id' do Estoque será o mesmo ID da Peca à qual ele se refere (OneToOneField)
-    # Isso garante que cada Peca tenha apenas uma entrada de estoque.
-    peca = models.OneToOneField(Peca, on_delete=models.CASCADE, primary_key=True, verbose_name="Peça")
-    # 'tipo' agora é redundante se já temos 'peca', mas se você quer, podemos manter.
-    # No entanto, é melhor usar peca.shape_type diretamente para consistência.
-    # Se você *realmente* quer um campo 'tipo' separado aqui, ele seria:
-    tipo = models.CharField(max_length=50, choices=TIPO_FORMA_CHOICES, verbose_name="Tipo de Forma (do Estoque)")
+    # REMOVED primary_key=True from OneToOneField
+    # Django will now create a separate _id field for Estoque
+    # The 'unique=True' ensures the one-to-one relationship
+    peca = models.OneToOneField(Peca, on_delete=models.CASCADE, unique=True, verbose_name="Peça")
+    
+    # 'tipo' is redundant here as you can access it via peca.tipo
+    # If you still want it, ensure it's handled correctly.
+    # For now, I'd recommend removing it for simplicity and avoiding redundancy.
+    # If kept, ensure its default or population logic is sound.
+    # tipo = models.CharField(max_length=50, choices=TIPO_FORMA_CHOICES, verbose_name="Tipo de Forma (do Estoque)")
+    
     qtd = models.IntegerField(default=0, verbose_name="Quantidade em Estoque")
 
     def __str__(self):
