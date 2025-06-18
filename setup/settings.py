@@ -36,6 +36,8 @@ ALLOWED_HOSTS = ['*'] # Changed to '*' for easier testing, but specify domains i
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -43,7 +45,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'dashboard',
-    'channels',
 ]
 
 MIDDLEWARE = [
@@ -76,18 +77,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'setup.wsgi.application'
 # ASGI application for Django Channels
-ASGI_APPLICATION = 'setup.asgi.application'
+ASGI_APPLICATION = "setup.asgi.application"
 
-# Channel Layer Configuration (requires Redis or other backend for production)
-# For development, an in-memory channel layer is fine.
+
+# Example for development (no Redis needed)
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer', # Use InMemoryChannelLayer para desenvolvimento
-        # Para produção, você usaria algo como:
-        # 'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        # 'CONFIG': {
-        #     "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379/1')],
-        # },
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
 
@@ -143,7 +139,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static"),]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "dashboard", "static"),]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field

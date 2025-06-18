@@ -1,25 +1,18 @@
-# dashboard/views.py
-
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.utils import timezone 
-
-# Importa as ferramentas do Channels
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-
-# Importa todos os modelos necessários
-from .models import Pedido, Estoque, Peca, PEDIDO_STATUS_CHOICES 
+from .models import Pedido, Estoque, Peca
+from .consumers import DashboardConsumer
 
 def home(request):
-    # NOTA: Estes dados ainda são usados para a renderização inicial da página
-    # O JavaScript no frontend se conectará ao WebSocket e fará as atualizações em tempo real.
-
     em_andamento_count = Pedido.objects.filter(status='em_andamento').count()
     pedidos_concluidos_count = Pedido.objects.filter(status='concluido').count()
 
+    # Definir o limite de estoque baixo (pode vir de settings ou ser fixo aqui)
     LOW_STOCK_THRESHOLD = 2 
 
     stock_data = {}
@@ -32,6 +25,7 @@ def home(request):
             if current_quantity < LOW_STOCK_THRESHOLD:
                 is_low_stock = True
         except Estoque.DoesNotExist:
+            # Se não há registro em Estoque, considere 0 itens e, portanto, baixo estoque se 0 < THRESHOLD
             is_low_stock = (0 < LOW_STOCK_THRESHOLD) 
 
         stock_data[peca_obj.tipo] = { 
@@ -40,9 +34,10 @@ def home(request):
             'is_low_stock': is_low_stock
         }
     
-    circulo_data = stock_data.get('circulo', {'quantity': 0, 'is_low_stock': True, 'name': 'Círculo'})
-    hexagono_data = stock_data.get('hexagono', {'quantity': 0, 'is_low_stock': True, 'name': 'Hexágono'})
-    quadrado_data = stock_data.get('quadrado', {'quantity': 0, 'is_low_stock': True, 'name': 'Quadrado'})
+    # Garantir que as chaves existam para evitar KeyError no template, mesmo se não houver peças cadastradas
+    circulo_data = stock_data.get('circulo', {'quantity': 0, 'is_low_stock': (0 < LOW_STOCK_THRESHOLD), 'name': 'Círculo'})
+    hexagono_data = stock_data.get('hexagono', {'quantity': 0, 'is_low_stock': (0 < LOW_STOCK_THRESHOLD), 'name': 'Hexágono'})
+    quadrado_data = stock_data.get('quadrado', {'quantity': 0, 'is_low_stock': (0 < LOW_STOCK_THRESHOLD), 'name': 'Quadrado'})
 
     return render(request, 'home.html', {
         'em_andamento': em_andamento_count,
@@ -53,7 +48,7 @@ def home(request):
         'circulo_low_stock': circulo_data['is_low_stock'],
         'hexagono_low_stock': hexagono_data['is_low_stock'],
         'quadrado_low_stock': quadrado_data['is_low_stock'],
-        'all_stock_info': stock_data 
+        'all_stock_info': stock_data # Passa os dados completos para uso no JS
     })
 
 @csrf_exempt
@@ -78,6 +73,7 @@ def novoPedido(request):
                 except ValueError:
                     return JsonResponse({'message': f'ID de peça inválido: "{peca_id_frontend_str}". Deve ser um número.'}, status=400)
                 except Peca.DoesNotExist:
+                    # Envia um toast de erro para o frontend se a peça não for encontrada
                     async_to_sync(channel_layer.group_send)(
                         'dashboard_updates',
                         {
@@ -94,6 +90,7 @@ def novoPedido(request):
 
             matriz_pecas_ids = [pecas_convertidas_ids[i:i+3] for i in range(0, 9, 3)]
 
+            # Validação para peças repetidas dentro de CADA montagem
             for idx, montagem_ids in enumerate(matriz_pecas_ids, start=1):
                 if len(set(montagem_ids)) != len(montagem_ids):
                     return JsonResponse(
@@ -103,15 +100,25 @@ def novoPedido(request):
 
             pedido = Pedido.objects.create(pecas=matriz_pecas_ids, status='pendente')
 
+            # Envia atualização para o dashboard (contagem de pedidos em andamento/total)
             async_to_sync(channel_layer.group_send)(
                 'dashboard_updates',
                 {
-                    'type': 'dashboard.message',
-                    'message_type': 'new_order_created',
-                    'order_id': str(pedido.id)
+                    'type': 'dashboard_update', # Tipo de mensagem para o dashboard
+                    'data': {
+                        'em_andamento_count': Pedido.objects.filter(status='em_andamento').count(),
+                        'concluido_count': Pedido.objects.filter(status='concluido').count(),
+                        'stock_info': {
+                            p.tipo: {
+                                'quantity': Estoque.objects.get(peca=p).qtd if Estoque.objects.filter(peca=p).exists() else 0,
+                                'is_low_stock': (Estoque.objects.get(peca=p).qtd < 2) if Estoque.objects.filter(peca=p).exists() else (0 < 2)
+                            } for p in Peca.objects.all()
+                        }
+                    }
                 }
             )
             
+            # Envia toast de sucesso para o frontend
             async_to_sync(channel_layer.group_send)(
                 'dashboard_updates',
                 {
@@ -128,6 +135,7 @@ def novoPedido(request):
             return JsonResponse({'message': 'Corpo da requisição JSON inválido.'}, status=400)
         except Exception as e:
             print(f"Erro inesperado em novoPedido: {e}")
+            # Envia toast de erro para o frontend em caso de exceção inesperada
             async_to_sync(channel_layer.group_send)(
                 'dashboard_updates',
                 {
@@ -144,7 +152,6 @@ def novoPedido(request):
     return render(request, 'novoPedido.html', {'pecas_cadastradas': pecas_para_template})
 
 
-
 def historico(request):
     pedidos_db = Pedido.objects.all().order_by('-id')
     pedidos_para_template = []
@@ -154,7 +161,7 @@ def historico(request):
     for pedido in pedidos_db:
         pecas_flat_list_ids = [] 
         pecas_flat_list_shapes = [] 
-        pecas_flat_list_names = []   
+        pecas_flat_list_names = []  
 
         for montagem_arr_ids in pedido.pecas: 
             for peca_id in montagem_arr_ids: 
