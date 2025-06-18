@@ -1,196 +1,144 @@
-/* Estilos para a forma hexagonal */
+/* Definições de cores Tailwind customizadas ou ajustes de tema */
+:root {
+    /* Cores do modo claro */
+    --color-text-default: #1f2937; /* gray-900 */
+    --color-text-secondary: #4b5563; /* gray-700 */
+    --color-bg-primary: #f9fafb; /* gray-50 */
+    --color-bg-secondary: #ffffff; /* white */
+
+    /* Cores das montagens (ajuste conforme necessário) */
+    --color-montage-1: #1CA1C6; /* Azul para Círculo */
+    --color-montage-2: #8ABF7A; /* Verde para Hexágono */
+    --color-montage-3: #4B4382; /* Roxo para Quadrado */
+
+    /* Cor da borda de status selecionada */
+    --color-border-status-selected: #3b82f6; /* blue-500 */
+    --color-border-status-default: #d1d5db; /* gray-300 */
+}
+
+.dark {
+    /* Cores do modo escuro */
+    --color-text-default: #e5e7eb; /* gray-200 */
+    --color-text-secondary: #9ca3af; /* gray-400 */
+    --color-bg-primary: #111827; /* gray-900 */
+    --color-bg-secondary: #1f2937; /* gray-800 */
+
+    /* As cores das montagens podem permanecer as mesmas ou serem ajustadas para o dark mode */
+    --color-montage-1: #0e7490; /* teal-700 */
+    --color-montage-2: #4d7c0f; /* lime-700 */
+    --color-montage-3: #5b21b6; /* violet-700 */
+
+    --color-border-status-selected: #60a5fa; /* blue-400 */
+    --color-border-status-default: #374151; /* gray-700 */
+}
+
+/* Classes para aplicar as variáveis CSS */
+.dashboard-title {
+    color: var(--color-text-default);
+}
+
+.dashboard-card-label {
+    color: var(--color-text-secondary);
+}
+
+.dashboard-card-value {
+    color: var(--color-text-default);
+}
+
+/* Cores das montagens para as pré-visualizações */
+.bg-shape-montage-1 { background-color: var(--color-montage-1); }
+.bg-shape-montage-2 { background-color: var(--color-montage-2); }
+.bg-shape-montage-3 { background-color: var(--color-montage-3); }
+
+/* Cores de status de borda */
+.border-status-selected { border-color: var(--color-border-status-selected); }
+.border-status-default { border-color: var(--color-border-status-default); }
+
+/* Para a forma hexagonal usando clip-path (se for o caso) */
 .hexagon-shape {
     clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
 }
 
-/* Cores customizadas usadas pelo JS para as peças, garantindo que o Tailwind as compile se estiver em modo JIT restritivo. */
-.bg-blue-500 { background-color: #3b82f6; }
-.bg-purple-600 { background-color: #9333ea; }
-.bg-green-600 { background-color: #10b981; }
-
-/* Estilos para o pop-up modal, garantindo sobreposição e scrollability */
-.modal-overlay {
-    background-color: rgba(0, 0, 0, 0.75);
-    z-index: 999;
-}
-.modal-content {
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-/* Estilos para o tooltip */
+/* Adicione estilos para o tooltip (se necessário, ou use uma biblioteca) */
 [data-tooltip] {
     position: relative;
-}
-
-[data-tooltip]::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    background-color: #333;
-    color: #fff;
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.375rem; /* rounded-md */
-    font-size: 0.875rem; /* text-sm */
-    white-space: nowrap;
-    z-index: 1000;
-
-    top: 100%; /* Position below the element */
-    left: 50%;
-    transform: translateX(-50%) translateY(0.5rem); /* Centralize and add spacing */
-
-    pointer-events: none;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s, visibility 0.2s, transform 0.2s;
+    cursor: pointer;
 }
 
 [data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    /* Mude 'bottom: 100%;' para 'top: 100%;' */
+    top: 100%; /* Posição ABAIXO do elemento */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    white-space: nowrap;
+    font-size: 0.875rem; /* text-sm */
+    z-index: 100; /* Aumente o z-index para garantir que fique acima de tudo */
+    /* Mude 'margin-bottom' para 'margin-top' */
+    margin-top: 0.5rem; /* Espaçamento entre o elemento e o tooltip */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Você já tem este bloco, apenas para confirmar que está lá */
+[data-tooltip]:hover::after,
+[data-tooltip]:focus::after {
     opacity: 1;
     visibility: visible;
-    transform: translateX(-50%) translateY(0.25rem); /* Slight upward movement on hover */
 }
 
-/* --- Novas Classes para Status Dinâmicos (Visual) --- */
-/* Estas classes seriam adicionadas/removidas via JS/backend para indicar status */
-.border-status-available { border-color: #6ee7b7; border-width: 3px; /* Tailwind green-300 */ box-shadow: 0 0 8px rgba(110, 231, 183, 0.7); }
-.border-status-low { border-color: #fca5a5; border-width: 3px; /* Tailwind red-300 */ box-shadow: 0 0 8px rgba(252, 165, 165, 0.7); }
-.border-status-selected { border-color: #a78bfa; border-width: 3px; /* Tailwind purple-400 */ }
-.border-status-default { border-color: #d1d5db; border-width: 3px; /* Tailwind gray-300 */ }
-
-/* ... seu CSS existente ... */
-
-/* Microinterações para elementos clicáveis */
-.hover-scale-105 {
-    transform: scale(1);
-    transition: transform 0.3s ease-in-out;
+/* Estilos para os ícones do header, se não estiverem funcionando */
+header a i {
+    color: white; /* Garante que os ícones do header sejam brancos */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5); /* Adiciona sombra para contraste */
 }
+
+/* Animação para os cards de estoque baixo */
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); /* red-500 com 70% de opacidade */
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); /* Transparente para o efeito de pulso */
+    }
+}
+
+.animate-pulse {
+    animation: pulse 2s infinite;
+}
+
+/* Estilos para o container de toast */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Espaçamento entre os toasts */
+}
+
+.toast {
+    /* Define largura máxima para os toasts */
+    max-width: 300px;
+}
+
+/* Estilos de transição para os elementos que escalam */
 .hover-scale-105:hover {
     transform: scale(1.05);
 }
 
 .active-scale-95:active {
     transform: scale(0.95);
-    transition: transform 0.1s ease-out;
 }
 
-/* NOVO: Ajuste para elementos select */
-/* Impedir que o dropdown 'pule' ao clicar */
-select.active-scale-95:active {
-    transform: scale(1); /* Não escala no clique */
-    transition: none;    /* Remove a transição no clique para evitar pulos */
+/* Adicione transições para as transformações */
+.hover-scale-105, .active-scale-95 {
+    transition: transform 0.2s ease-in-out;
 }
-/* Ou, se você quiser remover totalmente a classe do select no HTML, esta regra não é necessária. */
-
-/* ... seu CSS existente ... */
-
-/* Estilos para o tooltip */
-/* ... (manter como está) ... */
-
-/* --- Novas Classes para Status Dinâmicos (Visual) --- */
-/* ... (manter como está) ... */
-
-/* Microinterações para elementos clicáveis */
-/* ... (manter como está) ... */
-
-
-/* --- Estilos para Notificações TOAST --- */
-#toast-container {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 10000; /* Mais alto que o modal */
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.toast {
-    padding: 15px 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    color: white;
-    font-weight: 600;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-    min-width: 250px;
-    max-width: 350px;
-}
-
-.toast.show {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-/* Tipos de Toast */
-.toast.success { background-color: #28a745; /* green */ }
-.toast.error { background-color: #dc3545; /* red */ }
-.toast.info { background-color: #17a2b8; /* blue */ }
-.toast.warning { background-color: #ffc107; /* yellow */ color: #333; } /* dark text for yellow */
-
-
-/* --- Estilos para MODO ESCURO (Dark Mode) --- */
-/* Definir variáveis CSS para cores que mudam entre modos */
-:root {
-    --bg-primary: #f9fafb; /* gray-50 */
-    --bg-secondary: #ffffff; /* white */
-    --text-primary: #1f2937; /* gray-900 */
-    --text-secondary: #4b5563; /* gray-600 */
-    --border-color: #e5e7eb; /* gray-200 */
-    --shadow-color: rgba(0, 0, 0, 0.1);
-}
-
-[data-theme="dark"] {
-    --bg-primary: #1a202c; /* dark gray */
-    --bg-secondary: #2d3748; /* darker gray */
-    --text-primary: #f7fafc; /* light gray */
-    --text-secondary: #a0aec0; /* medium gray */
-    --border-color: #4a5568; /* dark border */
-    --shadow-color: rgba(0, 0, 0, 0.3);
-}
-
-/* Aplicar as variáveis nos elementos */
-body {
-    background-color: var(--bg-primary);
-    color: var(--text-primary);
-}
-
-main h1, main h2, main h3, main h4 {
-    color: var(--text-primary);
-}
-
-/* Ajustar cores de fundo e borda para cards e blocos */
-.bg-white, .bloco-montagem, .modal-content, .bg-gray-50 {
-    background-color: var(--bg-secondary);
-    border-color: var(--border-color);
-    color: var(--text-primary); /* Para garantir que o texto dentro seja correto */
-}
-
-.shadow-lg {
-    box-shadow: 0 10px 15px -3px var(--shadow-color), 0 4px 6px -2px var(--shadow-color);
-}
-.shadow-md {
-    box-shadow: 0 4px 6px -1px var(--shadow-color), 0 2px 4px -1px var(--shadow-color);
-}
-.shadow-inner {
-    box-shadow: inset 0 2px 4px 0 var(--shadow-color);
-}
-.shadow-2xl {
-    box-shadow: 0 25px 50px -12px var(--shadow-color);
-}
-
-/* Ajustes para selects e inputs */
-select, input[type="text"] {
-    background-color: var(--bg-secondary);
-    border-color: var(--border-color);
-    color: var(--text-primary);
-}
-select option { /* As cores das opções podem ser difíceis de controlar entre navegadores */
-    background-color: var(--bg-secondary);
-    color: var(--text-primary);
-}
-
-/* Header e Footer, se tiverem cores fixas, podem ser ajustados com variáveis também */
-/* Por exemplo, se seu header não tiver background image: */
-/* header { background-color: var(--bg-secondary); } */
-/* footer { background-color: var(--bg-dark-fixed); } */ /* Se tiver uma cor escura fixa */

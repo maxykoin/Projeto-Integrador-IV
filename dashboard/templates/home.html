@@ -22,79 +22,79 @@
         <a href="/pedidos/historico" aria-label="Histórico de Pedidos" class="text-white text-3xl hover:opacity-75 transition-opacity active-scale-95" data-tooltip="Ver Histórico de Pedidos">
             <i class="fas fa-list"></i>
         </a>
-        {# Botão de Modo Escuro no Header #}
-        <button id="theme-toggle" aria-label="Alternar modo claro/escuro" class="text-white text-3xl hover:opacity-75 transition-opacity active-scale-95 ml-auto" data-tooltip="Alternar Tema">
-            <i class="fas fa-moon"></i> {# Ícone de lua para modo escuro #}
-        </button>
     </header>
 
     {# Contêiner para as notificações Toast #}
     <div id="toast-container"></div>
 
-    {# Seção de alerta de estoque baixo #}
-    {% if circulo_low_stock or hexagono_low_stock or quadrado_low_stock %}
-    <section aria-live="assertive" role="alert" class="max-w-3xl mx-auto mt-6 px-4 py-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-center shadow-md hover-scale-105" data-tooltip="Alerta de Estoque Baixo">
+    {# Seção de alerta de estoque baixo: Removido o IF do Django e adicionado 'hidden' #}
+    <section aria-live="assertive" role="alert" class="max-w-3xl mx-auto mt-6 px-4 py-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-center shadow-md hover-scale-105 hidden" data-tooltip="Alerta de Estoque Baixo">
         <i class="fas fa-exclamation-triangle mr-2"></i>
-        Atenção: Estoque baixo em
-        {% if circulo_low_stock %} <strong>Círculo</strong>{% if hexagono_low_stock or quadrado_low_stock %}, {% endif %}{% endif %}
-        {% if hexagono_low_stock %} <strong>Hexágono</strong>{% if quadrado_low_stock %}, {% endif %}{% endif %}
-        {% if quadrado_low_stock %} <strong>Quadrado</strong>{% endif %}.
-        Considere realizar a realimentação.
-    </section>
-    {% endif %}
-
-<main class="flex-grow w-full px-4 sm:px-6 lg:px-8 py-8" role="main" aria-label="Dashboard do estoque">
-    <h1 class="text-center text-4xl font-extrabold text-gray-800 mb-12 tracking-tight">Dashboard de Estoque</h1>
-
-    <div class="border-t border-gray-300 mb-12 w-full max-w-6xl mx-auto"></div>
-
-    {# Indicadores gerais do sistema #}
-    <section aria-label="Indicadores gerais do sistema" class="max-w-6xl mx-auto mb-12 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-8 flex flex-col items-center justify-center min-w-[280px] hover-scale-105 active-scale-95" data-tooltip="Total de pedidos já realizados">
-            <p class="text-sm uppercase tracking-wide font-semibold mb-3 text-gray-700">Total de Pedidos</p>
-            <p class="text-6xl font-bold select-none text-gray-900" id="total-pedidos">{{ concluido|add:em_andamento }}</p>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-8 flex flex-col items-center justify-center min-w-[280px] hover-scale-105 active-scale-95" data-tooltip="Pedidos atualmente em processamento">
-            <p class="text-sm uppercase tracking-wide font-semibold mb-3 text-gray-700">Pedidos em Andamento</p>
-            <p class="text-6xl font-bold select-none text-gray-900" id="pedidos-em-andamento">{{ em_andamento }}</p>
-        </div>
+        <span id="low-stock-message">
+            Atenção: Estoque baixo em <strong></strong>. Considere realizar a realimentação.
+        </span>
     </section>
 
-    <div class="border-t border-gray-300 mb-12 w-full max-w-6xl mx-auto"></div>
+    <main class="flex-grow w-full px-4 sm:px-6 lg:px-8 py-8" role="main" aria-label="Dashboard do estoque">
+        {# Título principal do dashboard: ADICIONADO text-gray-900 #}
+        <h1 class="text-center text-4xl font-extrabold mb-12 tracking-tight dashboard-title text-gray-900">Dashboard de Estoque</h1>
 
-    {# Seção de resumo das formas em estoque com seus respectivos contadores #}
-    <section aria-label="Resumo das formas em estoque" class="max-w-6xl mx-auto mb-16">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
-            {# Círculo #}
-            <div class="bg-[#1CA1C6] rounded-xl shadow-lg p-8 flex flex-col items-center justify-center text-white hover-scale-105 active-scale-95 {% if circulo_low_stock %}border-4 border-red-500{% endif %}" data-tooltip="Quantidade de peças tipo Círculo em estoque">
-                <div class="flex items-center justify-center w-32 h-32 rounded-full border-4 border-white mb-4">
-                    <span id="circulo-qtd" class="text-7xl font-light leading-none select-none">{{ circulo }}</span> {# Adicionado ID para JS #}
-                </div>
-                <p class="mt-2 text-2xl font-semibold">Círculo</p>
+        <div class="border-t border-gray-300 mb-12 w-full max-w-6xl mx-auto"></div>
+
+        {# Indicadores gerais do sistema #}
+        <section aria-label="Indicadores gerais do sistema" class="max-w-6xl mx-auto mb-12 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-8 flex flex-col items-center justify-center min-w-[280px] hover-scale-105 active-scale-95" data-tooltip="Total de pedidos já realizados">
+                {# Texto de status: ADICIONADO text-gray-700 #}
+                <p class="text-sm uppercase tracking-wide font-semibold mb-3 dashboard-card-label text-gray-700">Total de Pedidos</p>
+                {# Valor: ADICIONADO text-gray-900 #}
+                <p class="text-6xl font-bold select-none dashboard-card-value text-gray-900" id="total-pedidos">{{ concluido|add:em_andamento }}</p>
             </div>
 
-            {# Hexágono #}
-            <div class="bg-[#8ABF7A] rounded-xl shadow-lg p-8 flex flex-col items-center justify-center text-white hover-scale-105 active-scale-95 relative {% if hexagono_low_stock %}border-4 border-red-500{% endif %}" data-tooltip="Quantidade de peças tipo Hexágono em estoque">
-                <div class="relative w-36 h-36 flex items-center justify-center mb-4">
-                    <svg aria-hidden="true" width="144" height="128" viewBox="0 0 112 96" fill="none" xmlns="http://www.w3.org/2000/svg" class="absolute inset-0 m-auto">
-                        <polygon points="28 0 84 0 112 48 84 96 28 96 0 48" stroke="white" stroke-width="6" fill="transparent" />
-                    </svg>
-                    <span id="hexagono-qtd" class="relative text-7xl font-light leading-none z-10">{{ hexagono }}</span> {# Adicionado ID para JS #}
-                </div>
-                <p class="mt-2 text-2xl font-semibold">Hexágono</p>
+            <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-8 flex flex-col items-center justify-center min-w-[280px] hover-scale-105 active-scale-95" data-tooltip="Pedidos atualmente em processamento">
+                {# Texto de status: ADICIONADO text-gray-700 #}
+                <p class="text-sm uppercase tracking-wide font-semibold mb-3 dashboard-card-label text-gray-700">Pedidos em Andamento</p>
+                {# Valor: ADICIONADO text-gray-900 #}
+                <p class="text-6xl font-bold select-none dashboard-card-value text-gray-900" id="pedidos-em-andamento">{{ em_andamento }}</p>
             </div>
+        </section>
 
-            {# Quadrado #}
-            <div class="bg-[#4B4382] rounded-xl shadow-lg p-8 flex flex-col items-center justify-center text-white hover-scale-105 active-scale-95 {% if quadrado_low_stock %}border-4 border-red-500{% endif %}" data-tooltip="Quantidade de peças tipo Quadrado em estoque">
-                <div class="flex items-center justify-center w-32 h-32 border-4 border-white mb-4">
-                    <span id="quadrado-qtd" class="text-7xl font-light leading-none select-none">{{ quadrado }}</span> {# Adicionado ID para JS #}
+        <div class="border-t border-gray-300 mb-12 w-full max-w-6xl mx-auto"></div>
+
+        {# Seção de resumo das formas em estoque com seus respectivos contadores #}
+        <section aria-label="Resumo das formas em estoque" class="max-w-6xl mx-auto mb-16">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
+                {# Círculo #}
+                {# Adicionada classe customizada para o background #}
+                <div class="bg-[#1CA1C6] rounded-xl shadow-lg p-8 flex flex-col items-center justify-center text-white hover-scale-105 active-scale-95 {% if circulo_low_stock %}border-4 border-red-500{% endif %} bg-shape-circulo" data-tooltip="Quantidade de peças tipo Círculo em estoque">
+                    <div class="flex items-center justify-center w-32 h-32 rounded-full border-4 border-white mb-4">
+                        <span id="circulo-qtd" class="text-7xl font-light leading-none select-none">{{ circulo }}</span>
+                    </div>
+                    <p class="mt-2 text-2xl font-semibold">Círculo</p>
                 </div>
-                <p class="mt-2 text-2xl font-semibold">Quadrado</p>
+
+                {# Hexágono #}
+                {# Adicionada classe customizada para o background #}
+                <div class="bg-[#8ABF7A] rounded-xl shadow-lg p-8 flex flex-col items-center justify-center text-white hover-scale-105 active-scale-95 relative {% if hexagono_low_stock %}border-4 border-red-500{% endif %} bg-shape-hexagono" data-tooltip="Quantidade de peças tipo Hexágono em estoque">
+                    <div class="relative w-36 h-36 flex items-center justify-center mb-4">
+                        <svg aria-hidden="true" width="144" height="128" viewBox="0 0 112 96" fill="none" xmlns="http://www.w3.org/2000/svg" class="absolute inset-0 m-auto">
+                            <polygon points="28 0 84 0 112 48 84 96 28 96 0 48" stroke="white" stroke-width="6" fill="transparent" />
+                        </svg>
+                        <span id="hexagono-qtd" class="relative text-7xl font-light leading-none z-10">{{ hexagono }}</span>
+                    </div>
+                    <p class="mt-2 text-2xl font-semibold">Hexágono</p>
+                </div>
+
+                {# Quadrado #}
+                {# Adicionada classe customizada para o background #}
+                <div class="bg-[#4B4382] rounded-xl shadow-lg p-8 flex flex-col items-center justify-center text-white hover-scale-105 active-scale-95 {% if quadrado_low_stock %}border-4 border-red-500{% endif %} bg-shape-quadrado" data-tooltip="Quantidade de peças tipo Quadrado em estoque">
+                    <div class="flex items-center justify-center w-32 h-32 border-4 border-white mb-4">
+                        <span id="quadrado-qtd" class="text-7xl font-light leading-none select-none">{{ quadrado }}</span>
+                    </div>
+                    <p class="mt-2 text-2xl font-semibold">Quadrado</p>
+                </div>
             </div>
-        </div>
-    </section>
-</main>
+        </section>
+    </main>
 
     <footer class="bg-gray-800 text-white text-center p-4 shadow-inner">
         <p>&copy; 2025 Projeto Integrador IV. Todos os direitos reservados.</p>
