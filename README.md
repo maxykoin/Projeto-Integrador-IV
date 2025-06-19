@@ -62,6 +62,7 @@ piiv/
 │   │   ├── modules/             # Módulos JavaScript organizados.
 │   │   │   ├── notifications.js # Módulo JS para notificações.
 │   │   │   ├── modals.js        # Módulo JS para modais.
+│   │   │   ├── constants.js     # Módulo JS para constantes.
 │   │   │   ├── charts.js        # Módulo JS para gráficos.
 │   │   │   └── utils.js         # Módulo JS de funções utilitárias.
 │   │   └── style.css            # CSS extra do dashboard, junto com o Tailwind.
