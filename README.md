@@ -92,7 +92,7 @@ O sistema oferece um conjunto de funcionalidades poderosas para a gestão de mon
 
 ### Pré-requisitos
 
-- Python 3.13
+- Python 3.12
 - Pipenv ou virtualenv (opcional, mas recomendado)
 
 ### Instalação
