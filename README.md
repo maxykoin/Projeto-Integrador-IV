@@ -67,14 +67,14 @@ piiv/
 │   │   └── style.css            # CSS extra do dashboard, junto com o Tailwind.
 │   └── migrations/              # Migrações do banco de dados geradas pelo Django.
 │
-├── README.md                   # Documentação do projeto.
-└── requirements.txt            # Lista de dependências Python. 
+├── README.md                    # Documentação do projeto.
+└── requirements.txt             # Lista de dependências Python. 
 ```
 
 ---
 
 ## 🚀 Funcionalidades Principais
-O sistema piiv oferece um conjunto de funcionalidades poderosas para a gestão de montagens:
+O sistema oferece um conjunto de funcionalidades poderosas para a gestão de montagens:
 
 - **Dashboard em Tempo Real:** Tenha uma visão imediata do estoque de peças e acompanhe o status dos pedidos. Inclui alertas visuais para estoque baixo.
 - **Criação Intuitiva de Pedidos:** Uma interface amigável permite montar novos pedidos, selecionando até 9 peças (3 por montagem), com pré-visualização gráfica das configurações.
@@ -96,15 +96,15 @@ O sistema piiv oferece um conjunto de funcionalidades poderosas para a gestão d
 
 ### Instalação
 - Configuração do SECRET_KEY
-Abra seu terminal na raiz do projeto (piiv/) e execute o comando:
-```bash
-python manage.py shell -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-```
-
-Copie a chave secreta que será exibida e adicione ao arquivo .env
-```bash
-SECRET_KEY = 'sua_secret_key'
-```
+  - Abra seu terminal na raiz do projeto (piiv/) e execute o comando:
+  ```bash
+  python manage.py shell -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+  ```
+  
+  - Copie a chave secreta que será exibida e adicione ao arquivo .env
+  ```bash
+  SECRET_KEY = 'sua_secret_key'
+  ```
 
 1.  **Clone o Repositório:**
     ```bash
