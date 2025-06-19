@@ -1,136 +1,156 @@
 import { showToast, showLoader, hideLoader, getCookie } from './utils.js';
+import { API_ENDPOINTS } from './constants.js'; // Importando as URLs da API
 
-// ELEMENTOS DO DOM
+// DOM Elements
 export const notificationBell = document.getElementById('notification-bell');
 export const notificationCount = document.getElementById('notification-count');
 export const notificationsDropdown = document.getElementById('notifications-dropdown');
 export const notificationsList = document.getElementById('notifications-list');
-// Renomeado para evitar conflito com 'noResultsMessage' de outros módulos se eles fossem importados aqui
-const noNotificationsMessageElem = document.getElementById('no-notifications-message'); 
+const noNotificationsMessageElem = document.getElementById('no-notifications-message');
 export const markAllReadBtn = document.getElementById('mark-all-read');
 
-let websocket; // A instância do WebSocket, gerenciada aqui
+let websocket = null; // Initialize to null
 
-/**
- * Conecta ao WebSocket do dashboard para receber atualizações em tempo real.
- * @param {boolean} forceNew - Força uma nova conexão mesmo se já houver uma aberta.
- */
 export function connectWebSocket(forceNew = false) {
-    // Apenas conecta se a página precisar de notificações ou dashboard updates
-    if (!notificationBell && window.location.pathname !== '/') {
-        console.log("Página não requer WebSocket para notificações/dashboard.");
+    // Only proceed if the page requires websocket (e.g., dashboard or explicit notification bell)
+    // or if forceNew is true to ensure a connection attempt regardless
+    if (!notificationBell && window.location.pathname !== '/' && !forceNew) {
+        console.log("Page does not require WebSocket for notifications/dashboard. Skipping connection.");
         return;
     }
 
+    // If WebSocket is already open, and we're not forcing a new connection, just return.
     if (websocket && websocket.readyState === WebSocket.OPEN && !forceNew) {
-        console.log("WebSocket já está conectado.");
+        console.log("WebSocket already connected.");
         return;
+    }
+
+    // Close existing socket if it's not closed but not open (e.g., CONNECTING, CLOSING)
+    if (websocket && websocket.readyState !== WebSocket.CLOSED) {
+        console.log("Closing existing WebSocket connection before reconnecting.");
+        websocket.close();
     }
 
     const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-    const wsURL = wsProtocol + window.location.host + '/ws/dashboard/'; // URL do seu consumer
+    const wsURL = wsProtocol + window.location.host + API_ENDPOINTS.DASHBOARD_WEBSOCKET; // wsURL is defined here
 
-    websocket = new WebSocket(wsURL);
+    console.log("Attempting to connect WebSocket to:", wsURL);
 
-    websocket.onopen = () => {
-        console.log("WebSocket conectado!");
-        // Fetch inicial de notificações e contagem após a conexão (se aplicável)
-        if (notificationBell) {
-            fetchUnreadNotificationsCount();
-        }
-    };
+    try {
+        websocket = new WebSocket(wsURL); // WebSocket instance is created here!
 
-    websocket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        console.log("Mensagem WebSocket recebida:", data);
-        if (data.type === 'dashboard_update') {
-            // Se esta função estiver em um módulo compartilhado,
-            // ou se dashboard_update for de fato um evento global
-            // Você pode despachar um evento customizado aqui para o dashboard principal
-            // document.dispatchEvent(new CustomEvent('dashboardUpdate', { detail: data.data }));
-            // Ou chamar diretamente updateDashboardUI se esse módulo tiver acesso a ela
-            // (Para simplicidade, mantive a chamada direta por enquanto, mas componentizar mais isolaria)
-            // updateDashboardUI(data.data); // Assumindo que updateDashboardUI será importada ou acessível
-        } else if (data.type === 'dashboard_message' && data.message_type === 'show_toast') {
-            showToast(data.toast_message, data.toast_type);
-        } else if (data.type === 'notification.update') {
-            updateNotificationCountUI(data.unread_count);
-        } else if (data.type === 'notification.new') {
-            showToast(data.notification.titulo, 'info', 5000); // Exibe toast para nova notificação
-            fetchNotifications(); // Atualiza a lista de notificações no dropdown
-        }
-    };
+        websocket.onopen = () => {
+            console.log("WebSocket connected!");
+            if (notificationBell) {
+                fetchUnreadNotificationsCount();
+            }
+        };
 
-    websocket.onclose = (event) => {
-        console.warn("WebSocket desconectado. Tentando reconectar em 3 segundos...", event.code, event.reason);
-        setTimeout(() => connectWebSocket(true), 3000); // Tenta reconectar
-    };
+        // This onmessage handler is correctly placed AFTER the websocket is initialized
+        websocket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log("WebSocket message received:", data);
 
-    websocket.onerror = (error) => {
-        console.error("Erro no WebSocket:", error);
-        websocket.close();
-    };
+            switch (data.type) {
+                case 'dashboard_update':
+                    // DISPATCHES A CUSTOM EVENT FOR THE MAIN DASHBOARD
+                    document.dispatchEvent(new CustomEvent('dashboardUpdate', { detail: data.data }));
+                    break;
+                case 'dashboard_message':
+                    if (data.message_type === 'show_toast') {
+                        showToast(data.toast_message, data.toast_type);
+                    }
+                    break;
+                case 'notification.update':
+                    updateNotificationCountUI(data.unread_count);
+                    break;
+                case 'notification.new':
+                    showToast(data.notification.titulo, 'info', 5000); // Using the imported showToast
+                    fetchNotifications();
+                    break;
+                default:
+                    console.log('Unknown WebSocket message type:', data.type);
+            }
+        };
+
+        websocket.onclose = (event) => {
+            console.warn("WebSocket disconnected. Attempting to reconnect in 3 seconds...", event.code, event.reason);
+            // Only attempt reconnect if the close was not initiated by an explicit close() call (code 1000 is normal closure)
+            // or if it was an abnormal closure. Check if we really want to auto-reconnect on ALL closes.
+            if (event.code !== 1000) { // 1000 is Normal Closure
+                setTimeout(() => connectWebSocket(true), 3000);
+            }
+        };
+
+        websocket.onerror = (error) => {
+            console.error("WebSocket error:", error);
+            // Close the socket to trigger onclose handler for potential reconnect
+            if (websocket.readyState === WebSocket.OPEN || websocket.readyState === WebSocket.CONNECTING) {
+                websocket.close();
+            }
+        };
+
+    } catch (error) {
+        console.error("Failed to establish WebSocket connection:", error);
+        // Ensure websocket is null if construction failed
+        websocket = null;
+    }
 }
 
-/**
- * Busca a contagem de notificações não lidas e atualiza a UI.
- */
 export async function fetchUnreadNotificationsCount() {
     showLoader();
     try {
-        const response = await fetch('/api/notificacoes/'); // URL ATUALIZADA
-        if (!response.ok) throw new Error('Erro ao buscar notificações');
+        const response = await fetch(API_ENDPOINTS.NOTIFICATIONS);
+        if (!response.ok) throw new Error(`Failed to fetch notifications: ${response.statusText}`);
         const data = await response.json();
         updateNotificationCountUI(data.unread_count);
     } catch (error) {
-        console.error("Erro ao buscar contagem de notificações:", error);
+        console.error("Error fetching notification count:", error);
     } finally {
         hideLoader();
     }
 }
 
-/**
- * Atualiza o contador visual de notificações não lidas no ícone do sino.
- * @param {number} count - O número de notificações não lidas.
- */
 function updateNotificationCountUI(count) {
     if (notificationCount) {
         if (count > 0) {
             notificationCount.textContent = count;
             notificationCount.classList.remove('hidden');
-            notificationBell.setAttribute('aria-label', `Ver ${count} novas notificações`);
-            notificationCount.setAttribute('title', `${count} novas notificações`);
+            notificationBell.setAttribute('aria-label', `View ${count} new notifications`);
+            notificationCount.setAttribute('title', `${count} new notifications`);
         } else {
             notificationCount.classList.add('hidden');
             notificationCount.textContent = '0';
-            notificationBell.setAttribute('aria-label', 'Ver notificações');
-            notificationCount.setAttribute('title', 'Nenhuma notificação');
+            notificationBell.setAttribute('aria-label', 'View notifications');
+            notificationCount.setAttribute('title', 'No notifications');
         }
     }
 }
 
-/**
- * Busca e renderiza a lista de notificações no dropdown.
- */
 export async function fetchNotifications() {
     showLoader();
     try {
-        const response = await fetch('/api/notificacoes/'); // URL ATUALIZADA
-        if (!response.ok) throw new Error('Erro ao buscar notificações.');
+        const response = await fetch(API_ENDPOINTS.NOTIFICATIONS);
+        if (!response.ok) throw new Error(`Failed to fetch notifications: ${response.statusText}`);
         const data = await response.json();
-        
-        notificationsList.innerHTML = ''; // Limpa a lista existente
+
+        notificationsList.innerHTML = '';
 
         if (data.notifications.length === 0) {
-            noNotificationsMessageElem.classList.remove('hidden');
-            notificationsList.appendChild(noNotificationsMessageElem);
+            // Ensure the message element is shown when there are no notifications
+            if (noNotificationsMessageElem) {
+                 noNotificationsMessageElem.classList.remove('hidden');
+                 notificationsList.appendChild(noNotificationsMessageElem); // Append it to the list
+            }
         } else {
-            noNotificationsMessageElem.classList.add('hidden');
+            if (noNotificationsMessageElem) {
+                noNotificationsMessageElem.classList.add('hidden');
+            }
             data.notifications.forEach(notif => {
                 const notifItem = document.createElement('div');
                 notifItem.className = `px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors ${notif.lida ? 'text-gray-500' : 'text-gray-800 font-semibold'}`;
                 notifItem.setAttribute('role', 'listitem');
-                notifItem.setAttribute('aria-label', `${notif.lida ? 'Lida' : 'Não Lida'}: ${notif.titulo}. ${notif.mensagem}`);
+                notifItem.setAttribute('aria-label', `${notif.lida ? 'Read' : 'Unread'}: ${notif.titulo}. ${notif.mensagem}`);
                 notifItem.dataset.notificationId = notif.id;
                 notifItem.innerHTML = `
                     <p class="text-sm">${notif.titulo}</p>
@@ -143,94 +163,88 @@ export async function fetchNotifications() {
         }
         updateNotificationCountUI(data.unread_count);
     } catch (error) {
-        console.error("Erro ao carregar lista de notificações:", error);
-        notificationsList.innerHTML = `<div class="px-4 py-3 text-red-500">Erro ao carregar notificações.</div>`;
+        console.error("Error loading notification list:", error);
+        if (notificationsList) {
+            notificationsList.innerHTML = `<div class="px-4 py-3 text-red-500">Error loading notifications.</div>`;
+        }
     } finally {
         hideLoader();
     }
 }
 
-/**
- * Lida com o clique em uma notificação individual, marcando-a como lida e redirecionando.
- * @param {object} notif - O objeto de notificação.
- */
 async function handleNotificationClick(notif) {
     if (!notif.lida) {
         await markNotificationAsRead(notif.id);
     }
-    notificationsDropdown.classList.add('hidden'); // Fecha o dropdown ao clicar
+    // Ensure dropdown exists before trying to hide it
+    if (notificationsDropdown) {
+        notificationsDropdown.classList.add('hidden');
+    }
     if (notif.link) {
         window.location.href = notif.link;
     }
 }
 
-/**
- * Marca uma notificação específica como lida no backend.
- * @param {number} notificationId - O ID da notificação a ser marcada.
- */
 async function markNotificationAsRead(notificationId) {
     showLoader();
     try {
-        const response = await fetch(`/api/notificacoes/lidas/${notificationId}/`, { // URL ATUALIZADA
+        const response = await fetch(API_ENDPOINTS.MARK_NOTIFICATION_READ(notificationId), {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCookie('csrftoken'),
                 'Content-Type': 'application/json'
             }
         });
-        if (!response.ok) throw new Error('Erro ao marcar como lida');
+        if (!response.ok) throw new Error(`Failed to mark as read: ${response.statusText}`);
         const data = await response.json();
         updateNotificationCountUI(data.unread_count);
         fetchNotifications();
     } catch (error) {
-        console.error("Erro ao marcar notificação como lida:", error);
-        showToast("Erro ao marcar notificação como lida.", "error");
+        console.error("Error marking notification as read:", error);
+        showToast("Error marking notification as read.", "error");
     } finally {
         hideLoader();
     }
 }
 
-/**
- * Marca todas as notificações como lidas no backend.
- */
 export async function markAllNotificationsAsRead() {
     showLoader();
     try {
-        const response = await fetch(`/api/notificacoes/lidas/all/`, { // URL ATUALIZADA (endpoint para marcar todas como lidas)
+        const response = await fetch(API_ENDPOINTS.MARK_ALL_NOTIFICATIONS_READ, {
             method: 'POST',
             headers: {
                 'X-CSRFToken': getCookie('csrftoken'),
                 'Content-Type': 'application/json'
             }
         });
-        if (!response.ok) throw new Error('Erro ao marcar todas como lidas');
+        if (!response.ok) throw new Error(`Failed to mark all as read: ${response.statusText}`);
         const data = await response.json();
         updateNotificationCountUI(data.unread_count);
         fetchNotifications();
-        showToast("Todas as notificações marcadas como lidas.", "success");
+        showToast("All notifications marked as read.", "success");
     } catch (error) {
-        console.error("Erro ao marcar todas as notificações como lidas:", error);
-        showToast("Erro ao marcar todas as notificações como lidas.", "error");
+        console.error("Error marking all notifications as read:", error);
+        showToast("Error marking all notifications as read.", "error");
     } finally {
         hideLoader();
     }
 }
 
-/**
- * Inicializa os event listeners para o sino de notificações e seu dropdown.
- */
 export function initializeNotifications() {
     if (notificationBell) {
         notificationBell.addEventListener('click', (event) => {
             event.stopPropagation();
-            notificationsDropdown.classList.toggle('hidden');
-            if (!notificationsDropdown.classList.contains('hidden')) {
-                fetchNotifications();
+            if (notificationsDropdown) { // Check if dropdown exists before toggling
+                notificationsDropdown.classList.toggle('hidden');
+                if (!notificationsDropdown.classList.contains('hidden')) {
+                    fetchNotifications();
+                }
             }
         });
 
         document.addEventListener('click', (event) => {
-            if (notificationsDropdown && !notificationsDropdown.contains(event.target) && !notificationBell.contains(event.target)) {
+            // Check if dropdown and bell exist before trying to access their contains method
+            if (notificationsDropdown && notificationBell && !notificationsDropdown.contains(event.target) && !notificationBell.contains(event.target)) {
                 notificationsDropdown.classList.add('hidden');
             }
         });
@@ -238,6 +252,6 @@ export function initializeNotifications() {
         if (markAllReadBtn) {
             markAllReadBtn.addEventListener('click', markAllNotificationsAsRead);
         }
-        fetchUnreadNotificationsCount(); // Busca a contagem inicial ao carregar a página
+        fetchUnreadNotificationsCount(); // Initial fetch
     }
 }

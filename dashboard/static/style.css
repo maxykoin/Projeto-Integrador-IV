@@ -1,23 +1,147 @@
-/* Definições de cores Tailwind customizadas ou ajustes de tema */
-/* ... (Seu código :root, .dark, dashboard-title, dashboard-card-label, etc.) ... */
+/* Custom Tailwind colors or theme adjustments (if any, keep here) */
+:root {
+    /* Exemplo de variáveis de cor (se você as definir aqui para reutilização) */
+    --color-primary: #8B5CF6; /* Roxo */
+    --color-secondary: #6B7280; /* Cinza */
+    --color-success: #10B981; /* Verde */
+    --color-error: #EF4444; /* Vermelho */
+    --color-info: #3B82F6; /* Azul */
+    --color-warning: #F59E0B; /* Amarelo */
+
+    --color-border-status-selected: var(--color-primary); /* Exemplo: borda roxa para selecionado */
+    --color-border-status-default: #D1D5DB; /* Exemplo: borda cinza claro para padrão */
+}
+
+/* Títulos e rótulos de cards do dashboard, se forem customizados além do Tailwind */
+.dashboard-title {
+    letter-spacing: -0.05em;
+}
+
+.dashboard-card-label {
+    text-transform: uppercase;
+    font-size: 0.875rem; /* text-sm */
+}
 
 /* Cores de status de borda */
-.border-status-selected { border-color: var(--color-border-status-selected); }
-.border-status-default { border-color: var(--color-border-status-default); }
+.border-status-selected {
+    border-width: 2px;
+    border-style: solid;
+    border-color: var(--color-border-status-selected);
+}
 
-/* Para a forma hexagonal usando clip-path (se for o caso) */
+.border-status-default {
+    border-width: 1px;
+    border-style: solid;
+    border-color: var(--color-border-status-default);
+}
+
+/* Hexagon Shape */
 .hexagon-shape {
     clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
 }
 
+/* Tooltip Base Styling */
 [data-tooltip] {
-    position: relative; /* Mantém o contexto para outros possíveis pseudo-elementos */
+    position: relative;
     cursor: pointer;
 }
 
-/* Remova quaisquer regras de overflow no body ou html que possam estar causando scroll */
+/* Global Body/HTML Overflow Handling */
 html, body {
-    overflow-x: hidden; /* Evita scroll horizontal */
+    overflow-x: hidden;
 }
 
-/* ... (Resto do seu CSS para header, animações, toast-container, toast, etc.) ... */
+/* Animações e Transições Comuns */
+.hover-scale-105:hover {
+    transform: scale(1.05);
+}
+
+.active-scale-95:active {
+    transform: scale(0.95);
+}
+
+/* Toast Notifications */
+#toast-container {
+    position: fixed; /* Adicionado para garantir que o contêiner esteja fixo na tela */
+    top: 1rem;
+    right: 1rem;
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Estilos base para cada notificação Toast individual */
+.toast {
+    opacity: 0 !important;
+    transform: translateX(100%) !important;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.5rem;
+    color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+    min-width: 200px;
+    max-width: 300px;
+}
+
+/* ESTE É O BLOCO CHAVE QUE FALTAVA OU ESTAVA INCORRETO */
+.toast.show {
+    opacity: 1 !important;
+    transform: translateX(0) !important;
+}
+
+/* Cores específicas para cada tipo de toast */
+.toast.success {
+    background-color: var(--color-success);
+}
+
+.toast.error {
+    background-color: var(--color-error);
+}
+
+.toast.info {
+    background-color: var(--color-info);
+}
+
+.toast.warning {
+    background-color: var(--color-warning);
+}
+
+/* Global Loader */
+#global-loader {
+    position: fixed; /* Garante que o loader cubra a tela */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(229, 231, 235, 0.75);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#global-loader > div {
+    border-top-color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+}
+
+/* Estilos para o modal */
+.modal-overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    animation: fadeInScale 0.3s ease-out forwards;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}

@@ -1,24 +1,11 @@
 import { showToast, showLoader, hideLoader } from './utils.js';
-
-// Constantes e Elementos DOM específicos de novo pedido
-const MONTAGE_COLORS = { // Redefinido aqui para evitar importações cruzadas desnecessárias se não for global
-    '1': 'bg-blue-500',
-    '2': 'bg-purple-600',
-    '3': 'bg-green-600'
-};
-
-const PIECE_ID_TO_DETAILS = { // Redefinido aqui ou importado de um arquivo de 'constants' global
-    '1': { type: 'circulo', name: 'Círculo' },
-    '2': { type: 'hexagono', name: 'Hexágono' },
-    '3': { type: 'quadrado', name: 'Quadrado' }
-};
+import { MONTAGE_COLORS, PIECE_ID_TO_DETAILS } from './constants.js';
 
 export const newOrderForm = document.getElementById('pedidoForm');
 export const confirmOrderButton = document.getElementById('confirmarBtn');
 
-
-// Funções auxiliares (se usadas apenas por este módulo)
-function renderShape(elementId, pieceIdentifier, montageNumber, statusClass = 'border-status-default') {
+// Ensure renderShape is declared only once and exported.
+export function renderShape(elementId, pieceIdentifier, montageNumber, statusClass = 'border-status-default') {
     const element = document.getElementById(elementId);
     if (!element) return;
 
@@ -49,8 +36,8 @@ function renderShape(elementId, pieceIdentifier, montageNumber, statusClass = 'b
         case 'hexagono':
             shapeClass = 'hexagon-shape';
             iconHtml = `<svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <polygon points="12,2 22,7 22,17 12,22 2,17 2,7"/>
-                        </svg>`;
+                                <polygon points="12,2 22,7 22,17 12,22 2,17 2,7"/>
+                            </svg>`;
             break;
         default:
             element.classList.add('bg-gray-100', 'rounded-full', 'border-status-default');
@@ -60,10 +47,6 @@ function renderShape(elementId, pieceIdentifier, montageNumber, statusClass = 'b
     element.innerHTML = iconHtml;
 }
 
-/**
- * Atualiza a pré-visualização de uma peça individual no formulário de novo pedido.
- * @param {string} selectName - O atributo 'name' do elemento <select> (ex: 'peca1').
- */
 function updatePiecePreview(selectName) {
     const selectElement = document.querySelector(`select[name="${selectName}"]`);
     if (!selectElement) return;
@@ -79,10 +62,6 @@ function updatePiecePreview(selectName) {
     renderShape(previewId, selectedPieceId, montageNumber.toString(), statusClass);
 }
 
-/**
- * Lida com o envio do formulário de novo pedido.
- * @param {Event} event - O evento de clique.
- */
 export async function handleConfirmOrderClick(event) {
     event.preventDefault();
 
@@ -94,13 +73,13 @@ export async function handleConfirmOrderClick(event) {
     for (let i = 1; i <= 9; i++) {
         const select = newOrderForm.querySelector(`select[name="peca${i}"]`);
         if (select && select.value) {
-            const pieceId = parseInt(select.value); // Parse to int immediately
-            if (isNaN(pieceId)) { // Check if parsing resulted in NaN
+            const pieceId = parseInt(select.value);
+            if (isNaN(pieceId)) {
                 allPiecesSelected = false;
                 console.error(`Invalid piece ID for peca${i}: ${select.value}`);
                 break;
             }
-            orderData[`peca${i}`] = pieceId; // Assign the parsed integer
+            orderData[`peca${i}`] = pieceId;
         } else {
             allPiecesSelected = false;
             console.warn(`Peca${i} is not selected or has an empty value.`);
@@ -109,7 +88,7 @@ export async function handleConfirmOrderClick(event) {
     }
 
     if (!allPiecesSelected) {
-        showToast('Por favor, selecione todas as 9 peças para o pedido.', 'warning');
+        showToast('Please select all 9 pieces for the order.', 'warning');
         return;
     }
 
@@ -123,35 +102,29 @@ export async function handleConfirmOrderClick(event) {
         const responseData = await response.json();
 
         if (!response.ok) {
-            showToast(responseData.message || 'Erro ao criar pedido.', 'error');
-            throw new Error(responseData.message || 'Erro ao criar pedido.');
+            showToast(responseData.message || 'Error creating order.', 'error');
+            throw new Error(responseData.message || 'Error creating order.');
         }
 
         newOrderForm.reset();
-        // Atualiza a pré-visualização após o reset
         for (let i = 1; i <= 9; i++) {
             updatePiecePreview(`peca${i}`);
         }
 
     } catch (error) {
-        if (!error.message.startsWith('Erro ao criar pedido')) {
-            showToast(`❌ Erro de comunicação: ${error.message}`, 'error');
+        if (!error.message.startsWith('Error creating order')) {
+            showToast(`❌ Communication error: ${error.message}`, 'error');
         }
         console.error('Detailed error confirming order:', error);
     }
 }
 
-/**
- * Inicializa os seletores de peças do formulário de novo pedido.
- * Adiciona listeners para atualizar a pré-visualização.
- */
 export function initializeNewOrderPieceSelectors() {
     for (let i = 1; i <= 9; i++) {
         const select = document.querySelector(`select[name="peca${i}"]`);
         if (select) {
             select.addEventListener('change', () => updatePiecePreview(`peca${i}`));
-            // Chama uma vez para configurar o estado inicial
-            updatePiecePreview(`peca${i}`); 
+            updatePiecePreview(`peca${i}`);
         }
     }
 }

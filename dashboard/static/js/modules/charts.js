@@ -1,47 +1,36 @@
 import { showToast, showLoader, hideLoader } from './utils.js';
 
-// ELEMENTOS DO DOM
+// DOM Elements
 export const ordersChartCanvas = document.getElementById('ordersChart');
 export const filter7DaysBtn = document.getElementById('filter7Days');
 export const filter30DaysBtn = document.getElementById('filter30Days');
 export const filterThisMonthBtn = document.getElementById('filterThisMonth');
-let ordersChart; // Variável para armazenar a instância do gráfico Chart.js
+let ordersChart; // Chart.js 
 
-
-/**
- * Busca dados de pedidos (criados e concluídos) para o gráfico.
- * @param {string} period - O período para buscar os dados ('7days', '30days', 'this_month').
- * @returns {Promise<object>} Dados do gráfico.
- */
 async function fetchOrdersChartData(period) {
     showLoader();
     try {
-        const response = await fetch(`/api/graficoPedidos/?period=${period}`); // URL ATUALIZADA
+        const response = await fetch(`/api/graficoPedidos/?period=${period}`);
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data = await response.json();
-        return data;
+        return await response.json();
     } catch (error) {
-        console.error("Erro ao buscar dados do gráfico de pedidos:", error);
-        showToast("Erro ao carregar dados do gráfico de pedidos.", "error");
+        console.error("Error fetching chart data:", error);
+        showToast("Failed to load chart data.", "error");
         return { labels: [], created_counts: [], completed_counts: [] };
     } finally {
         hideLoader();
     }
 }
 
-/**
- * Renderiza ou atualiza o gráfico de linha de pedidos.
- * @param {object} chartData - Os dados a serem usados no gráfico (labels, created_counts, completed_counts).
- */
 function renderOrdersChart(chartData) {
     if (!ordersChartCanvas) return;
 
     const ctx = ordersChartCanvas.getContext('2d');
 
     if (ordersChart) {
-        ordersChart.destroy(); // Destroi a instância anterior do gráfico se existir
+        ordersChart.destroy();
     }
 
     ordersChart = new Chart(ctx, {
@@ -69,7 +58,7 @@ function renderOrdersChart(chartData) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false, // Importante para controle de altura via CSS
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     position: 'top',
@@ -93,7 +82,7 @@ function renderOrdersChart(chartData) {
                     },
                     beginAtZero: true,
                     ticks: {
-                        precision: 0 // Garante que os valores no eixo Y sejam inteiros
+                        precision: 0
                     }
                 }
             }
@@ -101,31 +90,26 @@ function renderOrdersChart(chartData) {
     });
 }
 
-/**
- * Atualiza o gráfico de pedidos com base no período selecionado.
- * Também atualiza o estilo dos botões de filtro.
- * @param {string} period - O período a ser exibido no gráfico.
- */
+function updateFilterButtonStyles(activePeriod) {
+    const buttons = [
+        { btn: filter7DaysBtn, period: '7days' },
+        { btn: filter30DaysBtn, period: '30days' },
+        { btn: filterThisMonthBtn, period: 'this_month' }
+    ];
+
+    buttons.forEach(({ btn, period }) => {
+        if (!btn) return;
+
+        const isActive = period === activePeriod;
+        btn.classList.toggle('bg-purple-500', isActive);
+        btn.classList.toggle('text-white', isActive);
+        btn.classList.toggle('bg-gray-200', !isActive);
+        btn.classList.toggle('text-gray-700', !isActive);
+    });
+}
+
 export async function updateOrdersChart(period) {
     const data = await fetchOrdersChartData(period);
     renderOrdersChart(data);
-
-    // Atualizar estilos dos botões de filtro
-    const buttons = [filter7DaysBtn, filter30DaysBtn, filterThisMonthBtn];
-    buttons.forEach(button => {
-        if (button) {
-            button.classList.remove('bg-purple-500', 'text-white');
-            button.classList.add('bg-gray-200', 'text-gray-700');
-        }
-    });
-
-    let activeButton;
-    if (period === '7days' && filter7DaysBtn) activeButton = filter7DaysBtn;
-    else if (period === '30days' && filter30DaysBtn) activeButton = filter30DaysBtn;
-    else if (period === 'this_month' && filterThisMonthBtn) activeButton = filterThisMonthBtn;
-
-    if (activeButton) {
-        activeButton.classList.remove('bg-gray-200', 'text-gray-700');
-        activeButton.classList.add('bg-purple-500', 'text-white');
-    }
+    updateFilterButtonStyles(period);
 }

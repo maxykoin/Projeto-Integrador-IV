@@ -42,7 +42,6 @@
         </div>
     </header>
 
-    {# Contêiner para as notificações Toast #}
     <div id="toast-container" class="fixed top-4 right-4 z-[1001] flex flex-col gap-2"></div>
 
     {% block content %}
@@ -52,7 +51,6 @@
         <p>&copy; 2025 Projeto Integrador IV. Todos os direitos reservados.</p>
     </footer>
 
-    {# Div para o tooltip global, posicionada no final do body para ser fixa #}
     <div id="global-tooltip" class="fixed hidden bg-gray-900 text-white p-2 rounded text-sm z-[9999]" aria-hidden="true"></div>
     <script src="{% static 'js/main.js' %}" type="module" defer></script>
 </body>

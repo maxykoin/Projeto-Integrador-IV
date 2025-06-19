@@ -1,37 +1,19 @@
 // dashboard/static/js/modules/modals.js
 
-// Importe showToast, showLoader, hideLoader de utils.js
-import { showToast, showLoader, hideLoader, setupGlobalTooltips } from './utils.js'; 
+import { showToast, showLoader, hideLoader, setupGlobalTooltips } from './utils.js';
+import { MONTAGE_COLORS, PIECE_ID_TO_DETAILS } from './constants.js'; // Importando as constantes
 
-// Constantes e elementos DOM específicos para renderização de peças dentro do modal
-const MONTAGE_COLORS = {
-    '1': 'bg-blue-500',
-    '2': 'bg-purple-600',
-    '3': 'bg-green-600'
-};
-
-const PIECE_ID_TO_DETAILS = {
-    '1': { type: 'circulo', name: 'Círculo' },
-    '2': { type: 'hexagono', name: 'Hexágono' },
-    '3': { type: 'quadrado', name: 'Quadrado' }
-};
-
-
-// --- ELEMENTOS DO DOM (DECLARADOS AQUI, MAS INICIALIZADOS EM initializeModals) ---
-// Estes serão preenchidos (capturados do DOM) dentro de initializeModals
-export let orderDetailsModal; // Usamos 'let' porque será atribuído depois
-export let closeModalButton; // Usamos 'let' porque será atribuído depois
+// DOM elements
+export let orderDetailsModal;
+export let closeModalButton;
 let modalOrderId;
 let modalOrderStatus;
 let searchInput;
 let orderList;
 let noResultsMessage;
-let historicalOrderItems; // NodeList, capturada dentro de initializeHistoricalOrderItems
-
-// --- Funções Auxiliares (privadas a este módulo) ---
+let historicalOrderItems;
 
 function renderShape(elementId, pieceIdentifier, montageNumber, statusClass = 'border-status-default') {
-    // ... (sua função renderShape intacta) ...
     const element = document.getElementById(elementId);
     if (!element) return;
 
@@ -74,7 +56,6 @@ function renderShape(elementId, pieceIdentifier, montageNumber, statusClass = 'b
 }
 
 function getStatusClasses(status) {
-    // ... (sua função getStatusClasses intacta) ...
     switch (status) {
         case "em_andamento": return 'font-semibold text-yellow-600';
         case "concluido": return 'font-semibold text-green-600';
@@ -82,19 +63,9 @@ function getStatusClasses(status) {
     }
 }
 
-
-// --- Funções Exportadas (API do Módulo) ---
-
-/**
- * Exibe o modal de detalhes do pedido com os dados fornecidos.
- * Assume que os elementos do modal já foram capturados por initializeModals.
- * @param {string} id - O ID do pedido.
- * @param {string} status - O status do pedido.
- * @param {string} piecesIdsString - Uma string dos IDs das peças separadas por vírgulas (ex: "1,2,3,...").
- */
 export function showOrderDetailsModal(id, status, piecesIdsString) {
     if (!modalOrderId || !modalOrderStatus || !orderDetailsModal) {
-        console.error("showOrderDetailsModal: Elementos do modal não inicializados.");
+        console.error("showOrderDetailsModal: Modal elements not initialized.");
         return;
     }
 
@@ -115,41 +86,35 @@ export function showOrderDetailsModal(id, status, piecesIdsString) {
     const piecesIds = piecesIdsString.split(',').map(Number);
 
     if (piecesIds.length === 9) {
-        for (let i = 0; i < piecesIds.length; i++) {
+        piecesIds.forEach((pieceId, i) => {
             const globalPieceIndex = i + 1;
             const montageNumber = Math.ceil(globalPieceIndex / 3);
-            const pieceInDisplayIndex = (globalPieceIndex - 1) % 3 + 1;
+            const pieceInMontageIndex = (globalPieceIndex - 1) % 3 + 1;
 
-            const previewId = `modal_peca_pedido${montageNumber}_peca${pieceInDisplayIndex}`;
-            const labelId = `modal_label_pedido${montageNumber}_peca${pieceInDisplayIndex}`;
-
-            const pieceId = piecesIds[i];
+            const previewId = `modal_peca_pedido${montageNumber}_peca${pieceInMontageIndex}`;
+            const labelId = `modal_label_pedido${montageNumber}_peca${pieceInMontageIndex}`;
             const pieceDetails = PIECE_ID_TO_DETAILS[pieceId.toString()];
 
             if (pieceDetails) {
                 renderShape(previewId, pieceId, montageNumber.toString(), 'border-status-selected');
                 const labelElement = document.getElementById(labelId);
                 if (labelElement) {
-                    labelElement.textContent = `Peça ${pieceInDisplayIndex}: ${pieceDetails.name}`;
+                    labelElement.textContent = `Peça ${pieceInMontageIndex}: ${pieceDetails.name}`;
                 }
             } else {
                 renderShape(previewId, 'unknown', montageNumber.toString());
                 const labelElement = document.getElementById(labelId);
                 if (labelElement) {
-                    labelElement.textContent = `Peça ${pieceInDisplayIndex}: Desconhecido`;
+                    labelElement.textContent = `Peça ${pieceInMontageIndex}: Unknown`;
                 }
             }
-        }
+        });
     }
 
     orderDetailsModal.classList.remove('hidden');
     orderDetailsModal.classList.add('flex');
 }
 
-/**
- * Esconde o modal de detalhes do pedido.
- * Assume que orderDetailsModal já foi capturado.
- */
 export function hideOrderDetailsModal() {
     if (orderDetailsModal) {
         orderDetailsModal.classList.add('hidden');
@@ -157,60 +122,49 @@ export function hideOrderDetailsModal() {
     }
 }
 
-/**
- * Inicializa os event listeners para os itens do histórico de pedidos para abrir o modal.
- * Assume que historicalOrderItems já foi capturado por initializeModals.
- */
 export function initializeHistoricalOrderItems() {
-    if (!historicalOrderItems) { // Verificar se foi capturado
-        console.error("initializeHistoricalOrderItems: historicalOrderItems não inicializado.");
+    if (!historicalOrderItems) {
+        console.error("initializeHistoricalOrderItems: historicalOrderItems not initialized.");
         return;
     }
     historicalOrderItems.forEach(item => {
         item.addEventListener('click', function() {
-            const id = this.dataset.id;
-            const status = this.dataset.status;
-            const pieces = this.dataset.pecas;
-            showOrderDetailsModal(id, status, pieces);
+            const { id, status, pecas } = this.dataset;
+            showOrderDetailsModal(id, status, pecas);
         });
     });
 }
 
-/**
- * Configura a funcionalidade de busca para a lista de pedidos históricos.
- * Assume que searchInput, orderList e noResultsMessage já foram capturados por initializeModals.
- */
+function filterOrders() {
+    const query = searchInput.value.trim().toLowerCase();
+    let found = false;
+
+    const currentHistoricalOrderItems = document.querySelectorAll('.pedido-item'); 
+    currentHistoricalOrderItems.forEach(item => {
+        const id = item.dataset.id.toLowerCase();
+        const status = item.dataset.status.toLowerCase();
+
+        if (id.includes(query) || status.includes(query)) {
+            item.style.display = 'flex';
+            found = true;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+
+    noResultsMessage.style.display = found ? 'none' : 'block';
+}
+
 export function setupOrderSearch() {
     if (!searchInput || !orderList || !noResultsMessage) {
-        console.warn("setupOrderSearch: Elementos de busca ou lista de pedidos não encontrados, setupOrderSearch ignorado.");
+        console.warn("setupOrderSearch: Search elements or order list not found, skipping setup.");
         return;
     }
 
-    if (noResultsMessage.parentNode !== orderList.parentNode) { // Garante que a mensagem não seja duplicada
+    if (noResultsMessage.parentNode !== orderList.parentNode) {
         orderList.parentNode.appendChild(noResultsMessage);
     }
     noResultsMessage.style.display = 'none';
-
-    function filterOrders() {
-        const query = searchInput.value.trim().toLowerCase();
-        let found = false;
-
-        // Captura historicalOrderItems aqui novamente para garantir que está atualizado se o DOM mudar
-        const currentHistoricalOrderItems = document.querySelectorAll('.pedido-item'); 
-        currentHistoricalOrderItems.forEach(item => {
-            const id = item.dataset.id.toLowerCase();
-            const status = item.dataset.status.toLowerCase();
-
-            if (id.includes(query) || status.includes(query)) {
-                item.style.display = 'flex';
-                found = true;
-            } else {
-                item.style.display = 'none';
-            }
-        });
-
-        noResultsMessage.style.display = found ? 'none' : 'block';
-    }
 
     searchInput.addEventListener('input', filterOrders);
     searchInput.addEventListener('keydown', (event) => {
@@ -221,27 +175,20 @@ export function setupOrderSearch() {
     });
 }
 
-/**
- * Inicializa todos os listeners e elementos relacionados aos modais e busca.
- * Esta é a função principal para ser chamada do main.js, garantindo que o DOM esteja pronto.
- */
 export function initializeModals() {
-    // CAPTURAR OS ELEMENTOS DOM AQUI DENTRO DA FUNÇÃO
     orderDetailsModal = document.getElementById('pedido-modal');
     closeModalButton = document.getElementById('close-modal-btn');
     modalOrderId = document.getElementById('modal-pedido-id');
     modalOrderStatus = document.getElementById('modal-pedido-status');
     searchInput = document.getElementById('searchInput');
     orderList = document.getElementById('pedidoLista');
-    noResultsMessage = document.getElementById('avisoNenhumPedido'); // Ou crie se não existir
-    historicalOrderItems = document.querySelectorAll('.pedido-item'); // Capturar aqui também
+    noResultsMessage = document.getElementById('avisoNenhumPedido');
+    historicalOrderItems = document.querySelectorAll('.pedido-item');
 
-
-    // Verificações e adição de listeners
     if (closeModalButton) { 
         closeModalButton.addEventListener('click', hideOrderDetailsModal);
     } else {
-        console.warn("initializeModals: Botão de fechar modal não encontrado.");
+        console.warn("initializeModals: Close modal button not found.");
     }
     
     if (orderDetailsModal) {
@@ -251,12 +198,9 @@ export function initializeModals() {
             }
         });
     } else {
-        console.warn("initializeModals: Modal de detalhes do pedido não encontrado.");
+        console.warn("initializeModals: Order details modal not found.");
     }
 
-    // Inicializa a funcionalidade de busca, passando os elementos se necessário, ou confiando no escopo
     setupOrderSearch();
-
-    // Inicializa os listeners para os itens da lista de histórico
     initializeHistoricalOrderItems();
 }
