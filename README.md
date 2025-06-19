@@ -2,26 +2,32 @@
 
 ## 📌 Visão Geral
 
-Este projeto é um sistema web desenvolvido com Django para o gerenciamento e visualização de pedidos de montagem de peças, ideal para aplicações em fábricas, oficinas ou centros de montagem automatizados. O sistema permite o cadastro de pedidos, a separação de 3 montagens por pedido, com representações gráficas das peças envolvidas e a visualização detalhada via interface web responsiva. Além de conexão com o banco de dados MongoDB, que conversa com o CLP por meio do Node-Red para receber e enviar informações ao robô colaborativo de montagem. 
+Este projeto é um sistema web completo desenvolvido em Django para otimizar o gerenciamento e a visualização de pedidos de montagem de peças. Ideal para ambientes de produção como fábricas, oficinas e centros de montagem automatizados, ele atua como uma ponte crucial entre a gestão de pedidos e a automação industrial.
+
+O sistema permite:
+- Cadastro intuitivo de pedidos, com a capacidade de agrupar até três montagens por pedido.
+- Representação gráfica interativa das peças envolvidas, oferecendo uma clara visualização do que será montado.
+- Interface web responsiva que garante acesso e usabilidade em qualquer dispositivo.
+- Integração com MongoDB e Node-RED, estabelecendo comunicação bidirecional com um CLP e, consequentemente, com um robô colaborativo de montagem, para automação do processo.
 
 ---
 
 ## 🧰 Tecnologias Utilizadas
 
 - **Backend:**
-  - Python 3.13
-  - Django 3.1.12
-  - Channels 4.2.2
-  - Djongo 1.3.7
-  - Daphne 4.2.0
+  - Python 3.12: Linguagem de programação principal.
+  - Django 3.1.12: Framework web para desenvolvimento rápido e seguro.
+  - Channels 4.2.2: Habilita funcionalidades assíncronas e comunicação em tempo real (WebSockets).
+  - Djongo 1.3.7: Adaptador para utilizar MongoDB com Django.
+  - Daphne 4.2.0: Servidor ASGI para rodar aplicações Channels.
 
 - **Frontend:**
-  - HTML5
-  - TailwindCSS
-  - JavaScript (vanilla)
+  - HTML5: Estrutura base das páginas web.
+  - TailwindCSS: Framework CSS utilitário para estilização rápida e responsiva.
+  - JavaScript: Lógica interativa do lado do cliente.
 
 - **Banco de Dados:**
-  - MongoDB
+  - MongoDB: Banco de dados NoSQL flexível e escalável.
 
 ---
 
@@ -30,61 +36,54 @@ Este projeto é um sistema web desenvolvido com Django para o gerenciamento e vi
 ```
 piiv/
 │
-├── manage.py
-├── .env                    # Configurações secretas (não versionado)
-├── setup/                  # Configurações globais do Django
-│   ├── settings.py         # Configurações principais
-│   ├── urls.py             # URLs principais
-│   └── ...
+├── manage.py                    # Utilitário de linha de comando do Django.
+├── .env                         # Variáveis de ambiente sensíveis (não versionado).
+├── setup/                       # Configurações globais do projeto Django.
+│   ├── settings.py              # Configurações principais do projeto.
+│   ├── urls.py                  # Rotas URL globais do projeto.
+│   ├── wsgi.py                  # Ponto de entrada WSGI para deploy.
+│   └── asgi.py                  # Ponto de entrada ASGI para assincronismo (Channels).
 │
-├── dashboard/              # App principal
-│   ├── models.py           # Modelos de dados
-│   ├── views.py            # Lógica de visualização
-│   ├── urls.py             # Rotas locais
-│   ├── templates/          # Templates HTML
-│   │   ├── home.html
-│   │   ├── historico.html
-│   │   └── novoPedido.html
-│   ├── static/
-│   │   └── script.js       # Scripts JS de interação
-│   └── migrations/         # Migrações do banco
+├── dashboard/                   # Aplicativo Django principal.
+│   ├── models.py                # Modelos de dados da aplicação.
+│   ├── views.py                 # Lógica de visualização (controladores).
+│   ├── urls.py                  # Rotas URL específicas do app.
+│   ├── consumers.py             # Lógica para WebSockets (Django Channels).
+│   ├── routing.py               # Definição de rotas ASGI para consumers.
+│   ├── tests.py                 # Testes unitários e de integração.
+│   ├── templates/               # Templates HTML do aplicativo.
+│   │   ├── base.html            # Template HTML base.
+│   │   ├── home.html            # Template da página inicial.
+│   │   ├── historico.html       # Template da página de histórico.
+│   │   └── novoPedido.html      # Template da página de novo pedido.
+│   ├── static/                  # Arquivos estáticos (CSS, JS) do aplicativo.
+│   │   ├── js/                  # Diretório para arquivos JavaScript.
+│   │   ├── main.js              # JavaScript principal do dashboard.
+│   │   ├── modules/             # Módulos JavaScript organizados.
+│   │   │   ├── notifications.js # Módulo JS para notificações.
+│   │   │   ├── modals.js        # Módulo JS para modais.
+│   │   │   ├── charts.js        # Módulo JS para gráficos.
+│   │   │   └── utils.js         # Módulo JS de funções utilitárias.
+│   │   └── style.css            # CSS extra do dashboard, junto com o Tailwind.
+│   └── migrations/              # Migrações do banco de dados geradas pelo Django.
 │
-└── README.md               
+├── README.md                   # Documentação do projeto.
+└── requirements.txt            # Lista de dependências Python. 
 ```
 
 ---
 
-## 🚀 Funcionalidades
+## 🚀 Funcionalidades Principais
+O sistema piiv oferece um conjunto de funcionalidades poderosas para a gestão de montagens:
 
-- **Dashboard em Tempo Real:** Visão geral do estoque de peças (Círculo, Hexágono, Quadrado) e contagem de pedidos (total, em andamento). Alertas visuais para estoque baixo.
-- **Criação de Pedidos:** Interface para montar novos pedidos, selecionando 9 peças (3 por montagem), com pré-visualização das peças.
-- **Histórico de Pedidos:** Lista de todos os pedidos realizados, com busca por ID/status e detalhes completos do pedido em um modal.
-- **Gráficos de Pedidos:** Gráfico de linha interativo no histórico para visualizar o volume de pedidos criados e concluídos ao longo do tempo (diário/semanal/mensal).
-- **Sistema de Notificações In-App:** Ícone de sino no cabeçalho com contador de notificações não lidas e um dropdown para ver detalhes.
-- **Responsividade:** Layout adaptável para diferentes tamanhos de tela (mobile, tablet, desktop).
-- **Loaders Visuais:** Indicadores de carregamento para operações assíncronas.
-- **Acessibilidade (ARIA):** Implementação de atributos ARIA para melhorar a experiência de usuários com tecnologias assistivas.
-- **Notificações Toast:** Mensagens pop-up para feedback ao usuário.
-
----
-
-## 📄 Principais Arquivos
-
-### `models.py`
-Define as entidades principais:
-- `Pedido`: informações básicas do pedido, com cada montagem e as respectivas peças, além do status do pedido.
-- `Estoque`: informações sobre quais peças estão em espera.
-- `Peca`: informações sobre a quantidade e tipo de peças na linha de montagem.
-
-### `views.py`
-- Renderiza os templates `home`, `novoPedido` e `historico`.
-- Processa e organiza os dados enviados pelos formulários.
-- Gera contextos dinâmicos com listas de peças e pedidos.
-
-### `templates/*.html`
-- **`home.html`**: dashboard com dados da quantidade de peças em espera e pedidos.
-- **`novoPedido.html`**: formulário interativo para criação de pedidos.
-- **`historico.html`**: tabela com pedidos anteriores + detalhes com visual gráfico.
+- **Dashboard em Tempo Real:** Tenha uma visão imediata do estoque de peças e acompanhe o status dos pedidos. Inclui alertas visuais para estoque baixo.
+- **Criação Intuitiva de Pedidos:** Uma interface amigável permite montar novos pedidos, selecionando até 9 peças (3 por montagem), com pré-visualização gráfica das configurações.
+- **Histórico Completo de Pedidos:** Consulte todos os pedidos realizados com opções de busca por ID e status. Detalhes completos do pedido, incluindo a representação das montagens, podem ser visualizados em um modal dedicado.
+- **Gráficos de Acompanhamento:** Um gráfico de linha interativo no histórico permite visualizar o volume de pedidos criados e concluídos ao longo do tempo, com opções de filtro diário, semanal e mensal.
+- **Sistema de Notificações In-App:** Receba feedback instantâneo com um ícone de sino no cabeçalho, contador de notificações não lidas e um dropdown para acesso rápido aos detalhes.
+- **Design Responsivo:** A aplicação se adapta perfeitamente a diferentes tamanhos de tela (mobile, tablet, desktop), garantindo uma experiência de usuário consistente.
+- **Feedback Visual Moderno:** Inclui loaders visuais para operações assíncronas e notificações Toast para feedback rápido e contextual ao usuário.
+- **Acessibilidade (ARIA):** Implementação de atributos ARIA para garantir que o sistema seja utilizável por pessoas com deficiência, melhorando a experiência com tecnologias assistivas.
 
 ---
 
@@ -162,12 +161,22 @@ SECRET_KEY = 'sua_secret_key'
 ---
 
 ## 🤝 Contribuindo
+Contribuições são muito bem-vindas! Se você deseja colaborar com o projeto, por favor, siga os passos abaixo:
 
-1. Fork este repositório
-2. Crie sua branch: `git checkout -b feature/NovaFuncionalidade`
-3. Commit suas mudanças: `git commit -m 'Adiciona nova funcionalidade'`
-4. Push para a branch: `git push origin feature/NovaFuncionalidade`
-5. Abra um Pull Request
+1. Faça um fork deste repositório.
+2. Crie uma nova branch para sua funcionalidade ou correção: 
+    ```bash
+    git checkout -b feature/minha-nova-funcionalidade (ou bugfix/correcao-do-erro).
+    ```
+3. Realize suas alterações e faça commits claros e concisos: 
+    ```bash
+    git commit -m 'feat: Adiciona funcionalidade X' (ou fix: Corrige problema Y).
+    ```
+4. Envie suas mudanças para a sua branch no seu fork:
+    ```bash
+    git push origin feature/minha-nova-funcionalidade.
+    ```
+5. Abra um Pull Request para a branch main deste repositório, descrevendo detalhadamente as mudanças e o problema que elas resolvem.
 
 ---
 
