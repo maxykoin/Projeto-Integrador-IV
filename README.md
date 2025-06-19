@@ -109,8 +109,8 @@ O sistema oferece um conjunto de funcionalidades poderosas para a gestão de mon
 
 1.  **Clone o Repositório:**
     ```bash
-    git clone <URL_DO_SEU_REPOSITORIO>
-    cd pi-iv
+    git clone https://github.com/maxykoin/Projeto-Integrador-IV
+    cd Projeto-Integrador-IV
     ```
 2.  **Crie e Ative um Ambiente Virtual:**
     ```bash
@@ -126,6 +126,7 @@ O sistema oferece um conjunto de funcionalidades poderosas para a gestão de mon
     ```
 4.  **Configuração do Banco de Dados (MongoDB):**
     Abra `setup/settings.py` e configure as credenciais do seu MongoDB:
+    - Se utilizado localmente:
     ```python
     DATABASES = {
         'default': {
@@ -138,22 +139,35 @@ O sistema oferece um conjunto de funcionalidades poderosas para a gestão de mon
         }
     }
     ```
-5.  **Executar Migrações:**
+    - Se utilizado no atlas:
+    ```python
+    DATABASES = {
+    'default': {
+        'ENGINE': 'djongo',
+        'NAME': '<seu_banco>',  # Nome do seu banco de dados
+        'ENFORCE_SCHEMA': False, 
+        'CLIENT': {
+            'host': 'mongodb+srv://<username>:<password>@<cluster_url>/<seu_banco>?retryWrites=true&w=majority',
+            'authMechanism': 'SCRAM-SHA-1', # Often needed for Atlas connections
+        }
+    }
+    ```
+6.  **Executar Migrações:**
     ```bash
     python manage.py makemigrations dashboard
     python manage.py migrate
     ```
-6.  **Criar um Superusuário (para acesso ao Admin):**
+7.  **Criar um Superusuário (para acesso ao Admin):**
     ```bash
     python manage.py createsuperuser
     ```
-7.  **Popular Dados Iniciais (Opcional, mas Recomendado):**
+8.  **Popular Dados Iniciais (Opcional, mas Recomendado):**
     Para ter peças e estoque inicial:
     - Acesse o admin (`http://127.0.0.1:8000/admin`).
     - Adicione 3 tipos de `Peca` (ID 1: Círculo, ID 2: Hexágono, ID 3: Quadrado) com suas cores.
     - Adicione itens de `Estoque` para cada `Peca`.
 
-8.  **Rodar o Servidor de Desenvolvimento:**
+9.  **Rodar o Servidor de Desenvolvimento:**
     ```bash
     python manage.py runserver
     ```
