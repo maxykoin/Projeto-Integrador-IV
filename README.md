@@ -11,6 +11,9 @@ Este projeto é um sistema web desenvolvido com Django para o gerenciamento e vi
 - **Backend:**
   - Python 3.13
   - Django 3.1.12
+  - Channels 4.2.2
+  - Djongo 1.3.7
+  - Daphne 4.2.0
 
 - **Frontend:**
   - HTML5

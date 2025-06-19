@@ -1,55 +1,40 @@
+{% extends 'base.html' %}
 {% load static %}
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Histórico de Pedidos</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="icon" href="https://cdn.iconscout.com/icon/free/png-256/free-bosch-3442885-2875346.png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'style.css' %}">
-</head>
-<body class="flex flex-col min-h-screen bg-gray-50 font-poppins">
 
-    <header class="flex items-center gap-6 px-6 py-4 shadow-lg sticky top-0 z-40" style="background: url(https://www.boschmediaservice.hu/storage/publication/118_w1600.jpg); background-size: cover; background-position: center;">
-        <a href="/" aria-label="Página Inicial" class="text-white text-3xl hover:opacity-75 transition-opacity active-scale-95" data-tooltip="Ir para o Dashboard">
-            <i class="fas fa-home"></i>
-        </a>
-        <a href="/pedidos/" aria-label="Criar Novo Pedido" class="text-white text-3xl hover:opacity-75 transition-opacity active-scale-95" data-tooltip="Criar um Novo Pedido">
-            <i class="fas fa-plus-circle"></i>
-        </a>
-        <a href="/pedidos/historico" aria-label="Histórico de Pedidos" class="text-white text-3xl hover:opacity-75 transition-opacity active-scale-95" data-tooltip="Ver Histórico de Pedidos">
-            <i class="fas fa-list"></i>
-        </a>
-    </header>
+{% block title %}Histórico de Pedidos{% endblock %}
 
-    <main class="flex-grow flex flex-col items-center px-4 py-8" role="main" aria-label="Conteúdo principal do histórico de pedidos">
-        <div class="max-w-4xl w-full flex flex-col h-[650px] bg-white p-8 rounded-xl shadow-lg border border-gray-200">
-            <h1 class="text-4xl font-extrabold mb-8 text-gray-800 text-center tracking-tight">Histórico de Pedidos</h1>
+{% block content %}
+<main class="flex-grow flex flex-col items-center px-4 py-6 md:px-8 lg:px-12 xl:px-16 overflow-hidden" role="main" aria-label="Seção principal do histórico de pedidos">
+    <h1 class="text-4xl font-extrabold mb-8 text-gray-800 text-center tracking-tight w-full">Histórico de Pedidos</h1>
 
-            <form id="searchForm" onsubmit="return false;" class="mb-6 w-full max-w-xl mx-auto" data-tooltip="Busque pedidos por ID ou status">
+    <div class="flex flex-col lg:flex-row gap-6 lg:gap-8 w-full flex-grow">
+
+        <div class="flex-1 min-w-[280px] md:min-w-[320px] lg:min-w-[400px] bg-white p-4 sm:p-6 rounded-xl shadow-lg border border-gray-200 flex flex-col flex-grow flex-shrink-0" aria-labelledby="lista-pedidos-titulo">
+            <h2 id="lista-pedidos-titulo" class="text-xl sm:text-2xl font-bold mb-4 text-gray-800 text-center lg:text-left">Lista de Pedidos</h2>
+            
+            <form id="searchForm" onsubmit="return false;" class="mb-5 w-full" role="search" aria-label="Buscar pedidos no histórico" data-tooltip="Busque pedidos por ID ou status">
                 <input id="searchInput" type="text" placeholder="Buscar por ID ou status..."
-                    class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-lg active-scale-95"
-                    aria-label="Campo de busca de pedidos" />
+                    class="w-full p-2 sm:p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 text-base sm:text-lg active-scale-95"
+                    aria-label="Campo de busca de pedidos por ID ou status" />
             </form>
 
             {% if pedidos %}
-            <div class="overflow-y-auto border border-gray-200 rounded-lg p-4 mx-auto w-full"
-                style="max-width: 900px; max-height: 60vh;">
-                <ul id="pedidoLista" class="flex flex-col gap-4 w-full" aria-label="Lista de pedidos históricos">
+            <div class="overflow-y-auto border border-gray-200 rounded-lg p-3 w-full flex-grow max-h-[60vh]" aria-live="polite">
+                <ul id="pedidoLista" class="flex flex-col gap-3 w-full" aria-label="Lista de todos os pedidos históricos">
                     {% for pedido in pedidos %}
-                        <li class="pedido-item w-full flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-gray-50 rounded-lg shadow-sm cursor-pointer hover:bg-gray-100 transition-colors duration-200 hover-scale-105 active-scale-95"
+                        <li class="pedido-item w-full flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 rounded-lg shadow-sm cursor-pointer hover:bg-gray-100 transition-colors duration-200 hover-scale-105 active-scale-95"
                             data-id="{{ pedido.id }}"
                             data-status="{{ pedido.status }}"
-                            data-pecas="{{ pedido.pecas_list_ids|join:',' }}" {# CORRIGIDO: Agora passa pecas_list_ids #}
+                            data-pecas="{{ pedido.pecas_list_ids|join:',' }}"
                             aria-label="Detalhes do pedido {{ pedido.id }}, status {{ pedido.status }}"
-                            role="listitem">
+                            role="listitem"
+                            tabindex="0"
+                            data-tooltip="Clique para ver os detalhes do pedido {{ pedido.id }}">
 
-                            <div class="mb-4 sm:mb-0 sm:max-w-xs">
-                                <p class="text-sm text-gray-600">Pedido ID: <span class="font-semibold text-gray-800">{{ pedido.id }}</span></p>
-                                <p class="text-sm text-gray-600">Data: <span class="font-semibold text-gray-800">{{ pedido.data }}</span></p>
-                                <p class="text-sm text-gray-600">
+                            <div class="mb-3 sm:mb-0 sm:max-w-xs">
+                                <p class="text-xs sm:text-sm text-gray-600">Pedido ID: <span class="font-semibold text-gray-800">{{ pedido.id }}</span></p>
+                                <p class="text-xs sm:text-sm text-gray-600">Data: <span class="font-semibold text-gray-800">{{ pedido.data }}</span></p>
+                                <p class="text-xs sm:text-sm text-gray-600">
                                     Status:
                                     {% if pedido.status == "em_andamento" %}
                                         <span class="text-yellow-600 font-semibold">Em andamento</span>
@@ -63,50 +48,58 @@
                         </li>
                     {% endfor %}
                 </ul>
-                <p id="avisoNenhumPedido" class="text-center text-red-600 mt-4 font-semibold hidden">Pedido não encontrado.</p>
+                <p id="avisoNenhumPedido" class="text-center text-red-600 mt-4 font-semibold hidden" aria-live="assertive">Pedido não encontrado.</p>
             </div>
             {% else %}
-                <p class="text-center text-gray-500 mt-8">Nenhum pedido encontrado.</p>
+                <p class="text-center text-gray-500 mt-8 flex-grow" aria-live="polite">Nenhum pedido encontrado.</p>
             {% endif %}
         </div>
-    </main>
 
-    {# Pop-up (Modal) para Detalhes do Pedido #}
-    <div id="pedido-modal" class="fixed inset-0 hidden items-center justify-center modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-pedido-id">
-        <div class="bg-white p-8 rounded-xl shadow-2xl border border-gray-300 w-11/12 max-w-4xl modal-content relative">
-            <button id="close-modal-btn" aria-label="Fechar detalhes do pedido" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 rounded-full active-scale-95">
-                <i class="fas fa-times-circle"></i>
-            </button>
-            <h2 class="text-3xl font-extrabold text-center mb-6 text-gray-800" id="modal-title">Detalhes do Pedido <span id="modal-pedido-id" class="text-purple-700"></span></h2>
-            <p class="text-center text-gray-600 mb-8">Status: <span id="modal-pedido-status" class="font-semibold"></span></p>
-
-            <div id="modal-montagens-container" class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
-                {% for i in "123" %}
-                    <div class="bloco-montagem w-full p-6 bg-gray-50 rounded-lg shadow-inner border border-gray-200">
-                        <h3 class="text-xl font-semibold mb-4 text-center text-gray-700">Montagem {{ forloop.counter }}</h3>
-                        <div class="mt-6">
-                            <h4 class="text-lg font-semibold mb-3 text-center text-gray-700">Visualização</h4>
-                            <div class="flex flex-col gap-2 items-center">
-                                {# Divs para as peças, preenchidas pelo JS #}
-                                <p id="modal_label_pedido{{ forloop.counter }}_peca1" class="text-sm text-gray-600 mb-1"></p>
-                                <div id="modal_peca_pedido{{ forloop.counter }}_peca1" class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center shadow-inner transition-all duration-300 border-status-default" data-tooltip="Visualização da peça 1 desta montagem"></div>
-                                <p id="modal_label_pedido{{ forloop.counter }}_peca2" class="text-sm text-gray-600 mb-1"></p>
-                                <div id="modal_peca_pedido{{ forloop.counter }}_peca2" class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center shadow-inner transition-all duration-300 border-status-default" data-tooltip="Visualização da peça 2 desta montagem"></div>
-                                <p id="modal_label_pedido{{ forloop.counter }}_peca3" class="text-sm text-gray-600 mb-1"></p>
-                                <div id="modal_peca_pedido{{ forloop.counter }}_peca3" class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center shadow-inner transition-all duration-300 border-status-default" data-tooltip="Visualização da peça 3 desta montagem"></div>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
+        <div class="flex-1 min-w-[280px] md:min-w-[320px] bg-white p-4 sm:p-6 rounded-xl shadow-lg border border-gray-200 flex flex-col items-center flex-grow flex-shrink-0" aria-labelledby="grafico-volume-titulo">
+            <h2 id="grafico-volume-titulo" class="text-xl sm:text-2xl font-bold mb-4 text-gray-800 text-center lg:text-left">Volume de Pedidos (Últimos Dias)</h2>
+            
+            <div class="relative w-full flex-grow min-h-[250px] lg:min-h-[350px]">
+                <canvas id="ordersChart" role="img" aria-label="Gráfico de linha mostrando o número de pedidos criados e concluídos ao longo do tempo"></canvas>
+            </div>
+            
+            <div class="flex flex-wrap justify-center gap-3 mt-5 w-full" role="group" aria-label="Filtro de período do gráfico">
+                <button id="filter7Days" class="px-3 py-2 text-sm sm:px-4 sm:py-2 rounded-lg bg-purple-500 text-white hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500 active-scale-95 transition-all flex-1 basis-auto" data-tooltip="Mostrar dados dos últimos 7 dias">7 Dias</button>
+                <button id="filter30Days" class="px-3 py-2 text-sm sm:px-4 sm:py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 active-scale-95 transition-all flex-1 basis-auto" data-tooltip="Mostrar dados dos últimos 30 dias">30 Dias</button>
+                <button id="filterThisMonth" class="px-3 py-2 text-sm sm:px-4 sm:py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-500 active-scale-95 transition-all flex-1 basis-auto" data-tooltip="Mostrar dados do mês atual">Mês Atual</button>
             </div>
         </div>
     </div>
-    
-    <script src="{% static 'script.js' %}" defer></script>
-</body>
-</html>
+</main>
 
+{# Pop-up (Modal) para Detalhes do Pedido #}
+<div id="pedido-modal" class="fixed inset-0 hidden items-center justify-center modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title-pedido-modal">
+    <div class="bg-white p-4 sm:p-8 rounded-xl shadow-2xl border border-gray-300 w-11/12 max-w-lg md:max-w-xl lg:max-w-4xl modal-content relative max-h-[90vh] overflow-y-auto">
+        <button id="close-modal-btn" aria-label="Fechar detalhes do pedido" class="absolute top-3 right-3 sm:top-4 sm:right-4 text-gray-500 hover:text-gray-800 text-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 rounded-full active-scale-95" data-tooltip="Fechar janela de detalhes">
+            <i class="fas fa-times-circle"></i>
+        </button>
+        <h2 id="modal-title-pedido-modal" class="text-2xl sm:text-3xl font-extrabold text-center mb-4 sm:mb-6 text-gray-800">Detalhes do Pedido <span id="modal-pedido-id" class="text-purple-700"></span></h2>
+        <p class="text-sm sm:text-base text-center text-gray-600 mb-6 sm:mb-8" aria-live="polite">Status: <span id="modal-pedido-status" class="font-semibold"></span></p>
 
-
-
-
+        <div id="modal-montagens-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+            {% for i in "123" %}
+                <div class="bloco-montagem w-full p-4 bg-gray-50 rounded-lg shadow-inner border border-gray-200">
+                    <h3 id="montagem-titulo-{{ forloop.counter }}" class="text-lg sm:text-xl font-semibold mb-3 text-center text-gray-700">Montagem {{ forloop.counter }}</h3>
+                    <div class="mt-4" role="list">
+                        <h4 class="text-md sm:text-lg font-semibold mb-2 text-center text-gray-700">Visualização das Peças</h4>
+                        <div class="flex flex-col gap-2 items-center">
+                            <p id="modal_label_pedido{{ forloop.counter }}_peca1" class="text-xs sm:text-sm text-gray-600 mb-1" aria-live="polite"></p>
+                            <div id="modal_peca_pedido{{ forloop.counter }}_peca1" class="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center shadow-inner transition-all duration-300 border-status-default" data-tooltip="Visualização da peça 1 desta montagem" role="img" aria-label="Peça 1 da montagem {{ forloop.counter }}"></div>
+                            
+                            <p id="modal_label_pedido{{ forloop.counter }}_peca2" class="text-xs sm:text-sm text-gray-600 mb-1" aria-live="polite"></p>
+                            <div id="modal_peca_pedido{{ forloop.counter }}_peca2" class="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center shadow-inner transition-all duration-300 border-status-default" data-tooltip="Visualização da peça 2 desta montagem" role="img" aria-label="Peça 2 da montagem {{ forloop.counter }}"></div>
+                            
+                            <p id="modal_label_pedido{{ forloop.counter }}_peca3" class="text-xs sm:text-sm text-gray-600 mb-1" aria-live="polite"></p>
+                            <div id="modal_peca_pedido{{ forloop.counter }}_peca3" class="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center shadow-inner transition-all duration-300 border-status-default" data-tooltip="Visualização da peça 3 desta montagem" role="img" aria-label="Peça 3 da montagem {{ forloop.counter }}"></div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %} {# Fim do bloco de conteúdo #}

@@ -1,54 +1,5 @@
 /* Definições de cores Tailwind customizadas ou ajustes de tema */
-:root {
-    /* Cores do modo claro */
-    --color-text-default: #1f2937; /* gray-900 */
-    --color-text-secondary: #4b5563; /* gray-700 */
-    --color-bg-primary: #f9fafb; /* gray-50 */
-    --color-bg-secondary: #ffffff; /* white */
-
-    /* Cores das montagens (ajuste conforme necessário) */
-    --color-montage-1: #1CA1C6; /* Azul para Círculo */
-    --color-montage-2: #8ABF7A; /* Verde para Hexágono */
-    --color-montage-3: #4B4382; /* Roxo para Quadrado */
-
-    /* Cor da borda de status selecionada */
-    --color-border-status-selected: #3b82f6; /* blue-500 */
-    --color-border-status-default: #d1d5db; /* gray-300 */
-}
-
-.dark {
-    /* Cores do modo escuro */
-    --color-text-default: #e5e7eb; /* gray-200 */
-    --color-text-secondary: #9ca3af; /* gray-400 */
-    --color-bg-primary: #111827; /* gray-900 */
-    --color-bg-secondary: #1f2937; /* gray-800 */
-
-    /* As cores das montagens podem permanecer as mesmas ou serem ajustadas para o dark mode */
-    --color-montage-1: #0e7490; /* teal-700 */
-    --color-montage-2: #4d7c0f; /* lime-700 */
-    --color-montage-3: #5b21b6; /* violet-700 */
-
-    --color-border-status-selected: #60a5fa; /* blue-400 */
-    --color-border-status-default: #374151; /* gray-700 */
-}
-
-/* Classes para aplicar as variáveis CSS */
-.dashboard-title {
-    color: var(--color-text-default);
-}
-
-.dashboard-card-label {
-    color: var(--color-text-secondary);
-}
-
-.dashboard-card-value {
-    color: var(--color-text-default);
-}
-
-/* Cores das montagens para as pré-visualizações */
-.bg-shape-montage-1 { background-color: var(--color-montage-1); }
-.bg-shape-montage-2 { background-color: var(--color-montage-2); }
-.bg-shape-montage-3 { background-color: var(--color-montage-3); }
+/* ... (Seu código :root, .dark, dashboard-title, dashboard-card-label, etc.) ... */
 
 /* Cores de status de borda */
 .border-status-selected { border-color: var(--color-border-status-selected); }
@@ -59,86 +10,14 @@
     clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
 }
 
-/* Adicione estilos para o tooltip (se necessário, ou use uma biblioteca) */
 [data-tooltip] {
-    position: relative;
+    position: relative; /* Mantém o contexto para outros possíveis pseudo-elementos */
     cursor: pointer;
 }
 
-[data-tooltip]:hover::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    /* Mude 'bottom: 100%;' para 'top: 100%;' */
-    top: 100%; /* Posição ABAIXO do elemento */
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.375rem;
-    white-space: nowrap;
-    font-size: 0.875rem; /* text-sm */
-    z-index: 100; /* Aumente o z-index para garantir que fique acima de tudo */
-    /* Mude 'margin-bottom' para 'margin-top' */
-    margin-top: 0.5rem; /* Espaçamento entre o elemento e o tooltip */
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
+/* Remova quaisquer regras de overflow no body ou html que possam estar causando scroll */
+html, body {
+    overflow-x: hidden; /* Evita scroll horizontal */
 }
 
-/* Você já tem este bloco, apenas para confirmar que está lá */
-[data-tooltip]:hover::after,
-[data-tooltip]:focus::after {
-    opacity: 1;
-    visibility: visible;
-}
-
-/* Estilos para os ícones do header, se não estiverem funcionando */
-header a i {
-    color: white; /* Garante que os ícones do header sejam brancos */
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5); /* Adiciona sombra para contraste */
-}
-
-/* Animação para os cards de estoque baixo */
-@keyframes pulse {
-    0%, 100% {
-        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); /* red-500 com 70% de opacidade */
-    }
-    50% {
-        box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); /* Transparente para o efeito de pulso */
-    }
-}
-
-.animate-pulse {
-    animation: pulse 2s infinite;
-}
-
-/* Estilos para o container de toast */
-#toast-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    gap: 10px; /* Espaçamento entre os toasts */
-}
-
-.toast {
-    /* Define largura máxima para os toasts */
-    max-width: 300px;
-}
-
-/* Estilos de transição para os elementos que escalam */
-.hover-scale-105:hover {
-    transform: scale(1.05);
-}
-
-.active-scale-95:active {
-    transform: scale(0.95);
-}
-
-/* Adicione transições para as transformações */
-.hover-scale-105, .active-scale-95 {
-    transition: transform 0.2s ease-in-out;
-}
+/* ... (Resto do seu CSS para header, animações, toast-container, toast, etc.) ... */

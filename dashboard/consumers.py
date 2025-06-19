@@ -78,3 +78,57 @@ class DashboardConsumer(AsyncWebsocketConsumer):
                 'data': dashboard_data
             }
         )
+
+# dashboard/consumers.py
+import json
+from channels.generic.websocket import AsyncWebsocketConsumer
+
+class DashboardConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.room_group_name = 'dashboard_updates'
+        await self.channel_layer.group_add(
+            self.room_group_name,
+            self.channel_name
+        )
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+
+    async def receive(self, text_data):
+        # No momento, o consumer não espera receber mensagens do cliente,
+        # mas você pode adicionar lógica aqui se precisar de interação.
+        pass
+
+    # Handler para o tipo 'dashboard_update'
+    async def dashboard_update(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'dashboard_update',
+            'data': event['data']
+        }))
+
+    # Handler para o tipo 'dashboard.message' (para toasts)
+    async def dashboard_message(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'dashboard_message',
+            'message_type': event['message_type'],
+            'toast_message': event['toast_message'],
+            'toast_type': event['toast_type']
+        }))
+
+    # NOVO: Handler para o tipo 'notification.update'
+    async def notification_update(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'notification.update',
+            'unread_count': event['unread_count']
+        }))
+
+    # NOVO: Handler para o tipo 'notification.new'
+    async def notification_new(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'notification.new',
+            'notification': event['notification']
+        }))

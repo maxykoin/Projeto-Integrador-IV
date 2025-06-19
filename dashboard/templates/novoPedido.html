@@ -1,84 +1,56 @@
+{% extends 'base.html' %}
 {% load static %}
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Novo Pedido</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="icon" href="https://cdn.iconscout.com/icon/free/png-256/free-bosch-3442885-2875346.png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'style.css' %}">
-</head>
 
-<body class="bg-gray-50 min-h-screen flex flex-col font-poppins">
+{% block title %}Novo Pedido{% endblock %}
 
-    <header class="flex items-center gap-6 px-6 py-4 shadow-lg sticky top-0 z-40" style="background: url(https://www.boschmediaservice.hu/storage/publication/118_w1600.jpg); background-size: cover; background-position: center;">
-        <a href="/" aria-label="Home" class="text-white text-3xl hover:opacity-75 transition-opacity active-scale-95" data-tooltip="Ir para o Dashboard">
-            <i class="fas fa-home"></i>
-        </a>
-        <a href="/pedidos/" aria-label="Criar Novo Pedido" class="text-white text-3xl hover:opacity-75 transition-opacity active-scale-95" data-tooltip="Criar um Novo Pedido">
-            <i class="fas fa-plus-circle"></i>
-        </a>
-        <a href="/pedidos/historico" aria-label="Histórico de Pedidos" class="text-white text-3xl hover:opacity-75 transition-opacity active-scale-95" data-tooltip="Ver Histórico de Pedidos">
-            <i class="fas fa-list"></i>
-        </a>
-    </header>
+{% block content %}
+<main class="flex-grow max-w-7xl mx-auto p-8 w-full">
+    <h1 class="text-4xl font-extrabold text-center mb-8 text-gray-800 tracking-tight">Novo Pedido</h1>
 
-    <main class="flex-grow max-w-7xl mx-auto p-8 w-full">
-        <h1 class="text-4xl font-extrabold text-center mb-8 text-gray-800 tracking-tight">Novo Pedido</h1>
+    <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-200">
+        <form id="pedidoForm" class="flex flex-col items-center gap-2 w-full">
 
-        <div class="bg-white p-8 rounded-xl shadow-lg border border-gray-200">
-            <form id="pedidoForm" class="flex flex-col items-center gap-2 w-full">
+            <h2 class="text-2xl font-bold mb-6 text-purple-700 text-center">Seleção de Montagem</h2>
 
-                <h2 class="text-2xl font-bold mb-6 text-purple-700 text-center">Seleção de Montagem</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full mb-8">
+                {% for montagem_num in "123" %}
+                    <div class="bloco-montagem w-full p-6 bg-gray-50 rounded-lg shadow-inner border border-gray-200 hover-scale-105">
+                        <h3 class="text-xl font-semibold mb-4 text-center text-gray-700">Montagem {{ forloop.counter }}</h3>
+                        <div class="flex flex-col gap-4">
+                            {% for peca_local_num in "123" %}
+                                <div>
+                                    <label class="block mb-1 font-medium text-gray-600">Peça {{ forloop.counter }}</label>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full mb-8">
-                    {% for montagem_num in "123" %}
-                        <div class="bloco-montagem w-full p-6 bg-gray-50 rounded-lg shadow-inner border border-gray-200 hover-scale-105"> {# REMOVIDO: active-scale-95 daqui #}
-                            <h3 class="text-xl font-semibold mb-4 text-center text-gray-700">Montagem {{ forloop.counter }}</h3>
-                            <div class="flex flex-col gap-4">
-                                {% for peca_local_num in "123" %}
-                                    <div>
-                                        <label class="block mb-1 font-medium text-gray-600">Peça {{ forloop.counter }}</label>
-
-                                        <select name="peca{% if montagem_num == '1' %}{{ forloop.counter }}{% elif montagem_num == '2' %}{{ forloop.counter|add:3 }}{% elif montagem_num == '3' %}{{ forloop.counter|add:6 }}{% endif %}"
-                                                required class="w-full p-3 border border-gray-300 rounded-lg text-center shadow-sm hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-purple-500 text-lg" 
-                                                data-tooltip="Selecione a forma da peça {{ forloop.counter }} da Montagem {{ forloop.parentloop.counter }}">
-                                            <option value="" disabled selected>Escolha...</option>
-                                            <option value="1">Círculo</option>
-                                            <option value="2">Hexágono</option>
-                                            <option value="3">Quadrado</option>
-                                        </select>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                            <div class="mt-8">
-                                <h4 class="text-lg font-semibold mb-3 text-center text-gray-700">Visualização</h4>
-                                <div class="flex flex-col gap-2 items-center">
-                                    <div id="peca_pedido{{ forloop.counter }}_peca3" class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center shadow-inner transition-all duration-300 border-status-default" data-tooltip="Visualização da peça 3 desta montagem"></div>
-                                    <div id="peca_pedido{{ forloop.counter }}_peca2" class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center shadow-inner transition-all duration-300 border-status-default" data-tooltip="Visualização da peça 2 desta montagem"></div>
-                                    <div id="peca_pedido{{ forloop.counter }}_peca1" class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center shadow-inner transition-all duration-300 border-status-default" data-tooltip="Visualização da peça 1 desta montagem"></div>
+                                    <select name="peca{% if montagem_num == '1' %}{{ forloop.counter }}{% elif montagem_num == '2' %}{{ forloop.counter|add:3 }}{% elif montagem_num == '3' %}{{ forloop.counter|add:6 }}{% endif %}"
+                                            required class="w-full p-3 border border-gray-300 rounded-lg text-center shadow-sm hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-purple-500 text-lg" 
+                                            data-tooltip="Selecione a forma da peça {{ forloop.counter }} da Montagem {{ forloop.parentloop.counter }}">
+                                        <option value="" disabled selected>Escolha...</option>
+                                        <option value="1">Círculo</option>
+                                        <option value="2">Hexágono</option>
+                                        <option value="3">Quadrado</option>
+                                    </select>
                                 </div>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-8">
+                            <h4 class="text-lg font-semibold mb-3 text-center text-gray-700">Visualização</h4>
+                            <div class="flex flex-col gap-2 items-center">
+                                <div id="peca_pedido{{ forloop.counter }}_peca3" class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center shadow-inner transition-all duration-300 border-status-default" data-tooltip="Visualização da peça 3 desta montagem"></div>
+                                <div id="peca_pedido{{ forloop.counter }}_peca2" class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center shadow-inner transition-all duration-300 border-status-default" data-tooltip="Visualização da peça 2 desta montagem"></div>
+                                <div id="peca_pedido{{ forloop.counter }}_peca1" class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center shadow-inner transition-all duration-300 border-status-default" data-tooltip="Visualização da peça 1 desta montagem"></div>
                             </div>
                         </div>
-                    {% endfor %}
-                </div>
+                    </div>
+                {% endfor %}
+            </div>
 
-                <button id="confirmarBtn" type="button"
-                    class="mt-4 bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-4 rounded-full shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 active-scale-95"
-                    data-tooltip="Confirme para enviar o pedido principal">
-                    <i class="fas fa-check-circle mr-2"></i> Confirmar Pedido Principal
-                </button>
+            <button id="confirmarBtn" type="button"
+                class="mt-4 bg-purple-600 hover:bg-purple-700 text-white text-lg px-8 py-4 rounded-full shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 active-scale-95"
+                data-tooltip="Confirme para enviar o pedido principal">
+                <i class="fas fa-check-circle mr-2"></i> Confirmar Pedido Principal
+            </button>
 
-            </form>
-        </div>
-    </main>
-
-    <footer class="bg-gray-800 text-white text-center p-4 shadow-inner">
-        <p>&copy; 2025 Projeto Integrador IV. Todos os direitos reservados.</p>
-    </footer>
-
-    <script src="{% static 'script.js' %}"></script>
-</body>
-</html>
+        </form>
+    </div>
+</main>
+{% endblock %} {# Fim do bloco de conteúdo #}

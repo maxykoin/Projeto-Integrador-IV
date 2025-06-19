@@ -1,0 +1,59 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Dashboard{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="https://cdn.iconscout.com/icon/free/png-256/free-bosch-3442885-2875346.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="flex flex-col min-h-screen bg-gray-50 font-poppins">
+
+    <header class="flex items-center gap-6 px-4 md:px-6 py-4 shadow-lg sticky top-0 z-40" style="background: url(https://www.boschmediaservice.hu/storage/publication/118_w1600.jpg); background-size: cover; background-position: center;">
+        <a href="/" aria-label="Página Inicial do Dashboard" class="text-white text-3xl hover:opacity-75 transition-opacity active-scale-95" data-tooltip="Ir para o Dashboard">
+            <i class="fas fa-home"></i>
+        </a>
+        <a href="/pedidos/" aria-label="Criar um Novo Pedido" class="text-white text-3xl hover:opacity-75 transition-opacity active-scale-95" data-tooltip="Criar um Novo Pedido de Montagem">
+            <i class="fas fa-plus-circle"></i>
+        </a>
+        <a href="/pedidos/historico" aria-label="Ver Histórico de Pedidos" class="text-white text-3xl hover:opacity-75 transition-opacity active-scale-95" data-tooltip="Visualizar o Histórico de Todos os Pedidos">
+            <i class="fas fa-list"></i>
+        </a>
+
+        <div class="relative ml-auto">
+            <button id="notification-bell" class="text-white text-3xl hover:opacity-75 transition-opacity active-scale-95 relative" aria-label="Ver notificações" data-tooltip="Ver suas notificações">
+                <i class="fas fa-bell"></i>
+                <span id="notification-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center hidden" aria-live="polite" aria-atomic="true">0</span>
+            </button>
+            <div id="notifications-dropdown" class="absolute right-0 mt-2 w-72 xs:w-80 bg-white rounded-lg shadow-lg z-50 py-2 hidden max-h-[70vh] overflow-y-auto border border-gray-200">
+                <h3 class="px-4 py-2 text-lg font-semibold text-gray-800 border-b border-gray-200">Notificações</h3>
+                <div id="notifications-list" class="divide-y divide-gray-100">
+                    <div class="px-4 py-3 text-gray-500 text-center" id="no-notifications-message">Nenhuma notificação.</div>
+                </div>
+                <div class="px-4 py-2 border-t border-gray-200">
+                    <button id="mark-all-read" class="w-full text-center text-sm text-purple-600 hover:text-purple-800 transition-colors">Marcar todas como lidas</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    {# Contêiner para as notificações Toast #}
+    <div id="toast-container" class="fixed top-4 right-4 z-[1001] flex flex-col gap-2"></div>
+
+    {% block content %}
+    {% endblock %}
+
+    <footer class="bg-gray-800 text-white text-center p-4 shadow-inner" role="contentinfo">
+        <p>&copy; 2025 Projeto Integrador IV. Todos os direitos reservados.</p>
+    </footer>
+
+    {# Div para o tooltip global, posicionada no final do body para ser fixa #}
+    <div id="global-tooltip" class="fixed hidden bg-gray-900 text-white p-2 rounded text-sm z-[9999]" aria-hidden="true"></div>
+    <script src="{% static 'js/main.js' %}" type="module" defer></script>
+</body>
+</html>
