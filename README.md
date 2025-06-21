@@ -1,186 +1,200 @@
 # Projeto Integrador IV
+**🌐 Read this in other languages:**
+- 🇧🇷 [Português (BR)](README(PT-BR).md)
 
-## 📌 Visão Geral
+## 📌 Overview
 
-Este projeto é um sistema web completo desenvolvido em Django para otimizar o gerenciamento e a visualização de pedidos de montagem de peças. Ideal para ambientes de produção como fábricas, oficinas e centros de montagem automatizados, ele atua como uma ponte crucial entre a gestão de pedidos e a automação industrial.
+This project is a full-stack web system developed with Django to optimize the management and visualization of assembly orders. It is ideal for production environments such as factories, workshops, and automated assembly centers. The system acts as a crucial bridge between order management and industrial automation.
 
-O sistema permite:
-- Cadastro intuitivo de pedidos, com a capacidade de agrupar até três montagens por pedido.
-- Representação gráfica interativa das peças envolvidas, oferecendo uma clara visualização do que será montado.
-- Interface web responsiva que garante acesso e usabilidade em qualquer dispositivo.
-- Integração com MongoDB e Node-RED, estabelecendo comunicação bidirecional com um CLP e, consequentemente, com um robô colaborativo de montagem, para automação do processo.
+The system provides:
+- Intuitive order registration, allowing up to three assemblies per order.
+- Interactive graphical representation of involved parts, offering a clear visualization of what is being assembled.
+- Responsive web interface ensuring usability across all devices.
+- Integration with MongoDB and Node-RED, enabling bidirectional communication with a PLC and, consequently, a collaborative assembly robot for automation.
 
 ---
 
-## 🧰 Tecnologias Utilizadas
+## 🧰 Technologies Used
 
 - **Backend:**
-  - Python 3.12: Linguagem de programação principal.
-  - Django 3.1.12: Framework web para desenvolvimento rápido e seguro.
-  - Channels 4.2.2: Habilita funcionalidades assíncronas e comunicação em tempo real (WebSockets).
-  - Djongo 1.3.7: Adaptador para utilizar MongoDB com Django.
-  - Daphne 4.2.0: Servidor ASGI para rodar aplicações Channels.
+  - Python 3.12 – Main programming language.
+  - Django 3.1.12 – Secure and rapid web development framework.
+  - Channels 4.2.2 – Adds asynchronous and real-time features (WebSockets).
+  - Djongo 1.3.7 – Adapter to use MongoDB with Django.
+  - Daphne 4.2.0 – ASGI server for running Channels applications.
 
 - **Frontend:**
-  - HTML5: Estrutura base das páginas web.
-  - TailwindCSS: Framework CSS utilitário para estilização rápida e responsiva.
-  - JavaScript: Lógica interativa do lado do cliente.
+  - HTML5 – Base structure for web pages.
+  - TailwindCSS – Utility-first CSS framework for fast and responsive styling.
+  - JavaScript – Client-side interactivity logic.
 
-- **Banco de Dados:**
-  - MongoDB: Banco de dados NoSQL flexível e escalável.
+- **Database:**
+  - MongoDB – Flexible and scalable NoSQL database.
 
 ---
 
-## 🗂 Estrutura do Projeto
-
+## 🗂 Project Structure
 ```
 piiv/
 │
-├── manage.py                    # Utilitário de linha de comando do Django.
-├── .env                         # Variáveis de ambiente sensíveis (não versionado).
-├── setup/                       # Configurações globais do projeto Django.
-│   ├── settings.py              # Configurações principais do projeto.
-│   ├── urls.py                  # Rotas URL globais do projeto.
-│   ├── wsgi.py                  # Ponto de entrada WSGI para deploy.
-│   └── asgi.py                  # Ponto de entrada ASGI para assincronismo (Channels).
+├── manage.py # Django command-line utility.
+├── .env # Environment variables (not versioned).
+├── setup/ # Global Django project configuration.
+│ ├── settings.py # Main project settings.
+│ ├── urls.py # Global URL routing.
+│ ├── wsgi.py # WSGI entry point for deployment.
+│ └── asgi.py # ASGI entry point for Channels.
 │
-├── dashboard/                   # Aplicativo Django principal.
-│   ├── models.py                # Modelos de dados da aplicação.
-│   ├── views.py                 # Lógica de visualização (controladores).
-│   ├── urls.py                  # Rotas URL específicas do app.
-│   ├── consumers.py             # Lógica para WebSockets (Django Channels).
-│   ├── routing.py               # Definição de rotas ASGI para consumers.
-│   ├── tests.py                 # Testes unitários e de integração.
-│   ├── templates/               # Templates HTML do aplicativo.
-│   │   ├── base.html            # Template HTML base.
-│   │   ├── home.html            # Template da página inicial.
-│   │   ├── historico.html       # Template da página de histórico.
-│   │   └── novoPedido.html      # Template da página de novo pedido.
-│   ├── static/                  # Arquivos estáticos (CSS, JS) do aplicativo.
-│   │   ├── js/                  # Diretório para arquivos JavaScript.
-│   │   ├── main.js              # JavaScript principal do dashboard.
-│   │   ├── modules/             # Módulos JavaScript organizados.
-│   │   │   ├── notifications.js # Módulo JS para notificações.
-│   │   │   ├── modals.js        # Módulo JS para modais.
-│   │   │   ├── constants.js     # Módulo JS para constantes.
-│   │   │   ├── charts.js        # Módulo JS para gráficos.
-│   │   │   └── utils.js         # Módulo JS de funções utilitárias.
-│   │   └── style.css            # CSS extra do dashboard, junto com o Tailwind.
-│   └── migrations/              # Migrações do banco de dados geradas pelo Django.
+├── dashboard/ # Main Django app.
+│ ├── models.py # Application data models.
+│ ├── views.py # View logic (controllers).
+│ ├── urls.py # App-specific routes.
+│ ├── consumers.py # WebSocket logic (Django Channels).
+│ ├── routing.py # ASGI routing for consumers.
+│ ├── tests.py # Unit and integration tests.
+│ ├── templates/ # HTML templates.
+│ │ ├── base.html
+│ │ ├── home.html
+│ │ ├── historico.html
+│ │ └── novoPedido.html
+│ ├── static/ # Static files (CSS, JS).
+│ │ ├── js/
+│ │ ├── main.js
+│ │ ├── modules/
+│ │ │ ├── notifications.js
+│ │ │ ├── modals.js
+│ │ │ ├── constants.js
+│ │ │ ├── charts.js
+│ │ │ └── utils.js
+│ │ └── style.css
+│ └── migrations/ # Django database migrations.
 │
-├── README.md                    # Documentação do projeto.
-└── requirements.txt             # Lista de dependências Python. 
+├── README.md # Project documentation.
+└── requirements.txt # Python dependencies.
+``` 
+---
+
+## 🚀 Core Features
+
+The system provides a powerful set of features for assembly management:
+
+- **Real-Time Dashboard:** Get a live overview of part inventory and monitor order statuses. Includes visual alerts for low stock.
+- **Intuitive Order Creation:** A user-friendly interface allows for creating new orders by selecting up to 9 parts (3 per assembly), with graphical previews of configurations.
+- **Complete Order History:** View all submitted orders with search options by ID and status. Full order details, including graphical representations of each assembly, are available in a dedicated modal.
+- **Analytics Dashboard:** An interactive line chart in the order history shows the volume of created and completed orders over time, with daily, weekly, and monthly filters.
+- **In-App Notification System:** Receive instant feedback with a bell icon in the header, an unread counter, and a dropdown for quick access to details.
+- **Responsive Design:** The application adapts perfectly to different screen sizes (mobile, tablet, desktop), ensuring a consistent user experience.
+- **Modern Visual Feedback:** Includes visual loaders for asynchronous operations and Toast notifications for quick, contextual feedback.
+- **Accessibility (ARIA):** Implements ARIA attributes to make the system accessible to people with disabilities, enhancing support for assistive technologies.
+
+---
+
+## 🧪 Running the Project Locally
+
+### Pre-Requisites
+
+- Python 3.12
+- Pipenv or virtualenv (optional, but recommended)
+
+### Installation
+
+#### 1. Generate a Secret Key
+
+```bash
+python manage.py shell -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 ```
-
----
-
-## 🚀 Funcionalidades Principais
-O sistema oferece um conjunto de funcionalidades poderosas para a gestão de montagens:
-
-- **Dashboard em Tempo Real:** Tenha uma visão imediata do estoque de peças e acompanhe o status dos pedidos. Inclui alertas visuais para estoque baixo.
-- **Criação Intuitiva de Pedidos:** Uma interface amigável permite montar novos pedidos, selecionando até 9 peças (3 por montagem), com pré-visualização gráfica das configurações.
-- **Histórico Completo de Pedidos:** Consulte todos os pedidos realizados com opções de busca por ID e status. Detalhes completos do pedido, incluindo a representação das montagens, podem ser visualizados em um modal dedicado.
-- **Gráficos de Acompanhamento:** Um gráfico de linha interativo no histórico permite visualizar o volume de pedidos criados e concluídos ao longo do tempo, com opções de filtro diário, semanal e mensal.
-- **Sistema de Notificações In-App:** Receba feedback instantâneo com um ícone de sino no cabeçalho, contador de notificações não lidas e um dropdown para acesso rápido aos detalhes.
-- **Design Responsivo:** A aplicação se adapta perfeitamente a diferentes tamanhos de tela (mobile, tablet, desktop), garantindo uma experiência de usuário consistente.
-- **Feedback Visual Moderno:** Inclui loaders visuais para operações assíncronas e notificações Toast para feedback rápido e contextual ao usuário.
-- **Acessibilidade (ARIA):** Implementação de atributos ARIA para garantir que o sistema seja utilizável por pessoas com deficiência, melhorando a experiência com tecnologias assistivas.
-
----
-
-## 🧪 Como Rodar o Projeto Localmente
-
-### Pré-requisitos
-
-- Python 3.13
-- Pipenv ou virtualenv (opcional, mas recomendado)
-
-### Instalação
-- Configuração do SECRET_KEY
-  - Abra seu terminal na raiz do projeto (piiv/) e execute o comando:
-  ```bash
-  python manage.py shell -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-  ```
-  
-  - Copie a chave secreta que será exibida e adicione ao arquivo .env
-  ```bash
-  SECRET_KEY = 'sua_secret_key'
-  ```
-
-1.  **Clone o Repositório:**
-    ```bash
-    git clone <URL_DO_SEU_REPOSITORIO>
-    cd pi-iv
-    ```
-2.  **Crie e Ative um Ambiente Virtual:**
-    ```bash
-    python -m venv venv
-    # No Windows:
-    venv\Scripts\activate
-    # No macOS/Linux:
-    source venv/bin/activate
-    ```
-3.  **Instale as Dependências do Python:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-4.  **Configuração do Banco de Dados (MongoDB):**
-    Abra `setup/settings.py` e configure as credenciais do seu MongoDB:
-    ```python
-    DATABASES = {
-        'default': {
-            'ENGINE': 'djongo',
-            'NAME': 'pi-iv', # Nome do seu banco de dados
-            'HOST': 'localhost', # Ou a URL do seu MongoDB Atlas
-            'PORT': 27017,       # Porta padrão do MongoDB
-            # 'USER': 'seu_usuario', # Se houver autenticação
-            # 'PASSWORD': 'sua_senha', # Se houver autenticação
+Copy the generated key and add it to your .env file:
+```python
+SECRET_KEY='your_secret_key_here'
+```
+2. Clone the Repository
+```bash
+git clone https://github.com/maxykoin/Projeto-Integrador-IV
+cd Projeto-Integrador-IV
+```
+3. Create and Activate a Virtual Environment
+```bash
+python -m venv venv
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
+```
+4. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+5. Configure MongoDB
+Edit setup/settings.py:
+- If using locally:
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'djongo',
+        'NAME': 'pi-iv',
+        'HOST': 'localhost',
+        'PORT': 27017,
+    }
+}
+```
+- If using MongoDB Atlas:
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'djongo',
+        'NAME': '<your_db>',
+        'ENFORCE_SCHEMA': False,
+        'CLIENT': {
+            'host': 'mongodb+srv://<username>:<password>@<cluster_url>/<your_db>?retryWrites=true&w=majority',
+            'authMechanism': 'SCRAM-SHA-1',
         }
     }
-    ```
-5.  **Executar Migrações:**
-    ```bash
-    python manage.py makemigrations dashboard
-    python manage.py migrate
-    ```
-6.  **Criar um Superusuário (para acesso ao Admin):**
-    ```bash
-    python manage.py createsuperuser
-    ```
-7.  **Popular Dados Iniciais (Opcional, mas Recomendado):**
-    Para ter peças e estoque inicial:
-    - Acesse o admin (`http://127.0.0.1:8000/admin`).
-    - Adicione 3 tipos de `Peca` (ID 1: Círculo, ID 2: Hexágono, ID 3: Quadrado) com suas cores.
-    - Adicione itens de `Estoque` para cada `Peca`.
+}
+```
+6. Run Migrations
+```bash
+python manage.py makemigrations dashboard
+python manage.py migrate
+```
+7. Create a Superuser
+```bash
+python manage.py createsuperuser
+```
+8. Populate Initial Data (Optional)
+- Access the Django admin at http://127.0.0.1:8000/admin.
+- Add 3 types of Peca (ID 1: Circle, ID 2: Hexagon, ID 3: Square) with their respective colors.
+- Add stock entries for each Peca.
 
-8.  **Rodar o Servidor de Desenvolvimento:**
-    ```bash
-    python manage.py runserver
-    ```
-    Acesse `http://127.0.0.1:8000/` no seu navegador.
-
----
-
-## 🤝 Contribuindo
-Contribuições são muito bem-vindas! Se você deseja colaborar com o projeto, por favor, siga os passos abaixo:
-
-1. Faça um fork deste repositório.
-2. Crie uma nova branch para sua funcionalidade ou correção: 
-    ```bash
-    git checkout -b feature/minha-nova-funcionalidade (ou bugfix/correcao-do-erro).
-    ```
-3. Realize suas alterações e faça commits claros e concisos: 
-    ```bash
-    git commit -m 'feat: Adiciona funcionalidade X' (ou fix: Corrige problema Y).
-    ```
-4. Envie suas mudanças para a sua branch no seu fork:
-    ```bash
-    git push origin feature/minha-nova-funcionalidade.
-    ```
-5. Abra um Pull Request para a branch main deste repositório, descrevendo detalhadamente as mudanças e o problema que elas resolvem.
+9. Start the Development Server
+```bash
+python manage.py runserver
+```
+Visit http://127.0.0.1:8000/ in your browser.
 
 ---
 
-## 🧾 Licença
+## 🤝 Contributing
+We welcome contributions! To contribute:
 
-Este projeto está licenciado sob os termos da **MIT License**. Veja o arquivo `LICENSE` para mais detalhes.
+1. Fork this repository.
+2. Create a branch for your feature or bugfix:
+```bash
+git checkout -b feature/my-feature-name
+```
+3. Make your changes with clear and concise commits:
+```bash
+git commit -m "feat: Add feature X"
+```
+4. Push your branch:
+```bash
+git push origin feature/my-feature-name
+```
+5. Open a Pull Request to the main branch describing your changes.
+
+---
+
+## 🧾 License
+This project is licensed under the MIT License. See the LICENSE file for more details.
+
+---
+<p align = "center">Built with ❤️ using Django, MongoDB, and Node-RED.</p>
