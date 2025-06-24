@@ -7,8 +7,6 @@ from django.utils import timezone
 PEDIDO_STATUS_CHOICES = [
     ('pendente', 'Pendente'),
     ('em_andamento', 'Em Andamento'),
-    ('pausado', 'Pausado'),
-    ('cancelado', 'Cancelado'),
     ('concluido', 'Concluído'),
 ]
 
@@ -68,22 +66,6 @@ class Pedido(models.Model):
     class Meta:
         verbose_name = "Pedido de Montagem"
         verbose_name_plural = "Pedidos de Montagem"
-
-
-# Modelo para "Estoque"
-class Estoque(models.Model):
-    # O OneToOneField naturalmente já cria um ID primário para Estoque.
-    # Mantenha como está, pois o Djongo irá mapear para o _id do MongoDB.
-    peca = models.OneToOneField(Peca, on_delete=models.CASCADE, unique=True, verbose_name="Peça")
-    
-    qtd = models.IntegerField(default=0, verbose_name="Quantidade em Estoque")
-
-    def __str__(self):
-        return f"{self.peca.name}: {self.qtd} em estoque"
-
-    class Meta:
-        verbose_name = "Estoque de Peça"
-        verbose_name_plural = "Estoque de Peças"
 
 
 # Modelo para Notificação (Adicionado na última iteração)

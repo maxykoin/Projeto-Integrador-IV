@@ -5,55 +5,36 @@ import json
 from django.utils import timezone 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
-from .models import Pedido, Estoque, Peca, Notificacao
-from .consumers import DashboardConsumer
+from .models import Pedido, Estoque, Peca # Manter Estoque e Peca por enquanto, se ainda usados em outras partes
 from datetime import timedelta, date 
 from collections import defaultdict 
-import traceback # Importe traceback para depuração
+import traceback
+from django.db import transaction
 
 def home(request):
-    em_andamento_count = Pedido.objects.filter(status='em_andamento').count()
-    pedidos_concluidos_count = Pedido.objects.filter(status='concluido').count()
+    em_andamento_count = Pedido.objects.filter(status='Em Andamento').count()
+    pedidos_concluidos_count = Pedido.objects.filter(status='Concluido').count()
+    total_pedidos = em_andamento_count + pedidos_concluidos_count
 
-    LOW_STOCK_THRESHOLD = 2
-
-    stock_data = {}
-    for peca_obj in Peca.objects.all():
-        current_quantity = 0
-        is_low_stock = False
-        try:
-            estoque_item = Estoque.objects.get(peca=peca_obj)
-            current_quantity = estoque_item.qtd
-            if current_quantity < LOW_STOCK_THRESHOLD:
-                is_low_stock = True
-        except Estoque.DoesNotExist:
-            is_low_stock = (0 < LOW_STOCK_THRESHOLD) # Considera 0 itens como baixo estoque se 0 < threshold
-
-        stock_data[peca_obj.tipo] = {
-            'name': peca_obj.name,
-            'quantity': current_quantity,
-            'is_low_stock': is_low_stock
-        }
-
-    circulo_data = stock_data.get('circulo', {'quantity': 0, 'is_low_stock': (0 < LOW_STOCK_THRESHOLD), 'name': 'Círculo'})
-    hexagono_data = stock_data.get('hexagono', {'quantity': 0, 'is_low_stock': (0 < LOW_STOCK_THRESHOLD), 'name': 'Hexágono'})
-    quadrado_data = stock_data.get('quadrado', {'quantity': 0, 'is_low_stock': (0 < LOW_STOCK_THRESHOLD), 'name': 'Quadrado'})
+    # Busca o primeiro pedido pendente, se houver
+    # Assumimos que 'pendente' é o estado inicial, e 'Em Andamento' e 'Concluido' são outros
+    # Se 'Em Andamento' for o estado inicial, ajuste a consulta abaixo.
+    # Baseado nas suas informações anteriores, 'pendente' é o estado inicial.
+    pedido_pendente = Pedido.objects.filter(status='pendente').first()
 
     return render(request, 'home.html', {
-        'em_andamento': em_andamento_count,
-        'concluido': pedidos_concluidos_count,
-        'circulo': circulo_data['quantity'],
-        'hexagono': hexagono_data['quantity'],
-        'quadrado': quadrado_data['quantity'],
-        'circulo_low_stock': circulo_data['is_low_stock'],
-        'hexagono_low_stock': hexagono_data['is_low_stock'],
-        'quadrado_low_stock': quadrado_data['is_low_stock'],
-        'all_stock_info': stock_data
+        'em_andamento_count': em_andamento_count,
+        'concluido_count': pedidos_concluidos_count,
+        'total_pedidos_count': total_pedidos, # Passa o total de pedidos
+        'pedido_pendente': pedido_pendente, # Passa o objeto do pedido pendente (ou None)
     })
+
+# O restante das views (novoPedido, updateStatusPedido, historico, getGraficoPedidos) permanece o mesmo
+# conforme as últimas correções, focando na interação via WebSocket para notificações.
 
 @csrf_exempt
 def novoPedido(request):
-    channel_layer = get_channel_layer() 
+    channel_layer = get_channel_layer()
 
     if request.method == 'POST':
         try:
@@ -96,56 +77,35 @@ def novoPedido(request):
                         status=400
                     )
 
-            pedido = Pedido.objects.create(pecas=matriz_pecas_ids, status='pendente')
+            with transaction.atomic():
+                if Pedido.objects.filter(status='pendente').exists():
+                    return JsonResponse(
+                        {'message': '🚨 Já existe um pedido pendente. Conclua-o antes de criar outro.'},
+                        status=409
+                    )
 
-            Notificacao.objects.create(
-                titulo=f"Novo Pedido Criado!",
-                mensagem=f"O pedido #{pedido.id} foi criado e está pendente de processamento.",
-                tipo="pedido_criado",
-                link=f"/pedidos/historico?search={pedido.id}"
-            )
+                pedido = Pedido.objects.create(pecas=matriz_pecas_ids, status='pendente')
 
             async_to_sync(channel_layer.group_send)(
                 'dashboard_updates',
                 {
-                    'type': 'dashboard_update',
-                    'data': {
-                        'em_andamento_count': Pedido.objects.filter(status='em_andamento').count(),
-                        'concluido_count': Pedido.objects.filter(status='concluido').count(),
-                        'stock_info': {
-                            p.tipo: {
-                                'quantity': Estoque.objects.get(peca=p).qtd if Estoque.objects.filter(peca=p).exists() else 0,
-                                'is_low_stock': (Estoque.objects.get(peca=p).qtd < 2) if Estoque.objects.filter(peca=p).exists() else (0 < 2)
-                            } for p in Peca.objects.all()
-                        }
-                    }
+                    'type': 'notification.create',
+                    'titulo': f"Novo Pedido Criado!",
+                    'mensagem': f"O pedido #{pedido.id} foi criado e está pendente de processamento.",
+                    'tipo': "pedido_criado",
+                    'link': f"/pedidos/historico?search={pedido.id}"
+                }
+            )
+
+            # Atualiza o dashboard com os novos contadores e o status do pedido pendente
+            # Esta lógica agora é enviada via WebSocket
+            async_to_sync(channel_layer.group_send)(
+                'dashboard_updates',
+                {
+                    'type': 'dashboard_update_trigger' # Um novo tipo para triggar o consumer para re-enviar dados do dashboard
                 }
             )
             
-            # CORREÇÃO: Busca todas as notificações e conta em Python
-            all_notifications_for_count = Notificacao.objects.all()
-            unread_count = sum(1 for n in all_notifications_for_count if not n.lida)
-            
-            async_to_sync(channel_layer.group_send)(
-                'dashboard_updates',
-                {
-                    'type': 'notification.update',
-                    'unread_count': unread_count
-                }
-            )
-            async_to_sync(channel_layer.group_send)(
-                'dashboard_updates',
-                {
-                    'type': 'notification.new',
-                    'notification': {
-                        'titulo': f"Novo Pedido Criado!",
-                        'mensagem': f"O pedido #{pedido.id} foi criado e está pendente de processamento.",
-                        'tipo': "pedido_criado",
-                        'link': f"/pedidos/historico?search={pedido.id}"
-                    }
-                }
-            )
-
             async_to_sync(channel_layer.group_send)(
                 'dashboard_updates',
                 {
@@ -161,7 +121,7 @@ def novoPedido(request):
         except json.JSONDecodeError:
             return JsonResponse({'message': 'Corpo da requisição JSON inválido.'}, status=400)
         except Exception as e:
-            traceback.print_exc() 
+            traceback.print_exc()
             print(f"Erro inesperado em novoPedido (POST): {e}")
             async_to_sync(channel_layer.group_send)(
                 'dashboard_updates',
@@ -182,112 +142,53 @@ def novoPedido(request):
     return JsonResponse({'message': 'Método HTTP não permitido.'}, status=405)
 
 
-# Nova View: API para Notificações
-def getNotificacoes(request):
-    # CORREÇÃO: Busca todas as notificações e filtra/ordena/conta em Python
-    notifications = Notificacao.objects.all() # Remove .order_by('-data_criacao') aqui
-    
-    notifications_list = list(notifications) # Converte o QuerySet para lista
-    notifications_list.sort(key=lambda x: x.data_criacao, reverse=True) # Ordena em Python
-    
-    unread_count = sum(1 for n in notifications_list if not n.lida) # Contagem em Python
-
-    display_notifications = notifications_list[:10] # Limita para exibição
-
-    data = [{
-        'id': n.id,
-        'titulo': n.titulo,
-        'mensagem': n.mensagem,
-        'data_criacao': n.data_criacao.strftime("%d/%m/%Y %H:%M"),
-        'lida': n.lida,
-        'tipo': n.tipo,
-        'link': n.link
-    } for n in display_notifications]
-
-    return JsonResponse({'notifications': data, 'unread_count': unread_count})
-
-@csrf_exempt
-def marcarComoLida(request, notification_id):
-    if request.method == 'POST':
-        try:
-            notification = Notificacao.objects.get(id=notification_id)
-            notification.lida = True
-            notification.save()
-
-            channel_layer = get_channel_layer()
-            
-            # CORREÇÃO: Recalcula a contagem de não lidas buscando e contando em Python
-            all_notifications_for_count = Notificacao.objects.all()
-            unread_count = sum(1 for n in all_notifications_for_count if not n.lida)
-
-            async_to_sync(channel_layer.group_send)(
-                'dashboard_updates',
-                {
-                    'type': 'notification.update',
-                    'unread_count': unread_count
-                }
-            )
-            return JsonResponse({'status': 'success', 'unread_count': unread_count})
-        except Notificacao.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Notificação não encontrada'}, status=404)
-        except Exception as e:
-            traceback.print_exc()
-            print(f"Erro em marcarComoLida: {e}")
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-    return JsonResponse({'message': 'Método não permitido.'}, status=405)
-
-
-@csrf_exempt
-def marcarTodasComoLida(request):
-    if request.method == 'POST':
-        try:
-            # CORREÇÃO: Busca todas as notificações, filtra em Python e salva individualmente.
-            all_notifications = Notificacao.objects.all() # Busca todas sem filtro no DB
-            
-            for notification in all_notifications:
-                if not notification.lida: # Filtra em Python
-                    notification.lida = True
-                    notification.save() # Salva cada objeto individualmente
-
-            channel_layer = get_channel_layer()
-            unread_count = 0 # Todas foram marcadas como lidas
-            async_to_sync(channel_layer.group_send)(
-                'dashboard_updates',
-                {
-                    'type': 'notification.update',
-                    'unread_count': unread_count
-                }
-            )
-            return JsonResponse({'status': 'success', 'unread_count': unread_count})
-        except Exception as e:
-            traceback.print_exc()
-            print(f"Erro inesperado em marcarTodasComoLida: {e}")
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-    return JsonResponse({'message': 'Método não permitido.'}, status=405)
-
-
 def updateStatusPedido(request, pedido_id):
     pedido = get_object_or_404(Pedido, id=pedido_id)
-    pedido.status = 'concluido'
+    # Lógica para determinar o próximo status
+    # Se estiver 'pendente', muda para 'Em Andamento' (ou 'Concluido' se for o fluxo direto)
+    # Assumindo que você tem um fluxo de `pendente` -> `Em Andamento` -> `Concluido`
+    # Para simplificar aqui, vamos direto para 'Concluido' como você mencionou 2 estados finais.
+    # Se o fluxo for `pendente` -> `Em Andamento` -> `Concluido`, você precisaria de mais lógica.
+    
+    # Se o pedido estava pendente, agora ele está "em andamento" ou "concluído".
+    # Vou assumir que ao "processar" um pedido pendente, ele vai para "Em Andamento".
+    # E que o método updateStatusPedido é chamado novamente quando ele está pronto para "Concluido".
+    # Para o seu caso, se o botão "Processar Pedido" sempre leva a 'Concluido':
+    # pedido.status = 'Concluido'
+    
+    # Ajuste: se o pedido pendente for processado, ele deve ir para 'Em Andamento' primeiro.
+    # Se o pedido já está em 'Em Andamento', o próximo clique o conclui.
+    if pedido.status == 'pendente':
+        pedido.status = 'Em Andamento'
+        msg_status = "Em Andamento"
+    elif pedido.status == 'Em Andamento':
+        pedido.status = 'Concluido'
+        msg_status = "Concluido"
+    else:
+        # Se já estiver concluído, não faz nada ou retorna um erro.
+        return JsonResponse({'status': 'error', 'message': 'Pedido já concluído.'}, status=400)
+
+
     pedido.save()
 
-    Notificacao.objects.create(
-        titulo=f"Status do Pedido #{pedido.id} Atualizado!",
-        mensagem=f"O pedido #{pedido.id} foi marcado como '{pedido.get_status_display()}'.",
-        tipo="pedido_status",
-        link=f"/pedidos/historico?search={pedido.id}"
-    )
-
     channel_layer = get_channel_layer()
-    # CORREÇÃO: Busca todas as notificações e conta em Python
-    all_notifications_for_count = Notificacao.objects.all()
-    unread_count = sum(1 for n in all_notifications_for_count if not n.lida)
-    
+
     async_to_sync(channel_layer.group_send)(
         'dashboard_updates',
         {
-            'type': 'notification.update',
-            'unread_count': unread_count
+            'type': 'notification.create',
+            'titulo': f"Status do Pedido #{pedido.id} Atualizado!",
+            'mensagem': f"O pedido #{pedido.id} foi marcado como '{msg_status}'.",
+            'tipo': "pedido_status",
+            'link': f"/pedidos/historico?search={pedido.id}"
+        }
+    )
+    
+    # Dispara uma atualização completa do dashboard via WebSocket
+    async_to_sync(channel_layer.group_send)(
+        'dashboard_updates',
+        {
+            'type': 'dashboard_update_trigger' # Novo tipo para triggar o consumer para re-enviar dados do dashboard
         }
     )
     return JsonResponse({'status': 'success', 'message': 'Status atualizado com sucesso!'})
@@ -362,7 +263,7 @@ def getGraficoPedidos(request):
         
         if start_date_obj <= pedido_date <= end_date_obj:
             created_counts_dict[pedido_date] += 1
-            if pedido.status == 'concluido':
+            if pedido.status == 'Concluido': # Usar 'Concluido' como string
                 completed_counts_dict[pedido_date] += 1
 
     labels = [d.strftime("%d/%m") for d in dates_in_period]

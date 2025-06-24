@@ -69,14 +69,13 @@ document.addEventListener('dashboardUpdate', (event) => {
 // ===============================
 document.addEventListener('DOMContentLoaded', () => {
     setupGlobalTooltips();
-    connectWebSocket();
-    initializeNotifications();
+    connectWebSocket(); // Esta função agora gerencia tudo de notificações via WS
+    initializeNotifications(); // Inicializa os listeners de UI para o sino/dropdown
 
     // New Order Page Logic
     if (newOrderForm) {
         initializeNewOrderPieceSelectors();
-        // Use an explicit if-check for addEventListener for wider compatibility.
-        if (confirmOrderButton) { // This is the corrected part for line 50.
+        if (confirmOrderButton) {
             confirmOrderButton.addEventListener('click', async (event) => {
                 showLoader();
                 await handleConfirmOrderClick(event);
@@ -92,7 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.location.pathname === '/pedidos/historico') {
         updateOrdersChart('7days'); // Default to 7 days
 
-        // Filter buttons for chart - also using explicit if-checks.
         const filter7DaysBtn = document.getElementById('filter7Days');
         const filter30DaysBtn = document.getElementById('filter30Days');
         const filterThisMonthBtn = document.getElementById('filterThisMonth');

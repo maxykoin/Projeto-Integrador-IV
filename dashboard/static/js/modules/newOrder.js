@@ -102,19 +102,24 @@ export async function handleConfirmOrderClick(event) {
         const responseData = await response.json();
 
         if (!response.ok) {
+            // Exibe a mensagem de erro específica do backend.
             showToast(responseData.message || 'Error creating order.', 'error');
-            throw new Error(responseData.message || 'Error creating order.');
+            // IMPORTANTE: Não lance (throw) o erro aqui. Se você lançar, o bloco catch será executado
+            // e poderá exibir outro toast. Queremos apenas um toast para erros da API.
+            return; // Sai da função após lidar com o erro
         }
 
+        // Se a resposta for OK, significa que o pedido foi iniciado com sucesso.
+        // O toast de sucesso e a nova notificação virão via WebSocket do backend.
         newOrderForm.reset();
         for (let i = 1; i <= 9; i++) {
             updatePiecePreview(`peca${i}`);
         }
 
     } catch (error) {
-        if (!error.message.startsWith('Error creating order')) {
-            showToast(`❌ Communication error: ${error.message}`, 'error');
-        }
+        // Este bloco catch só será alcançado para erros de rede ou problemas
+        // na análise da resposta JSON, não para erros específicos da API onde response.ok é falso.
+        showToast(`❌ Communication error: ${error.message}`, 'error');
         console.error('Detailed error confirming order:', error);
     }
 }
