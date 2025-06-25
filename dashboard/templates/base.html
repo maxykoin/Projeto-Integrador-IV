@@ -11,6 +11,35 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'style.css' %}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* Definir alturas aproximadas para o header e footer */
+        /* Isso é crucial para o cálculo do espaço na main */
+        /* Ajuste esses valores se o design do seu header/footer mudar muito */
+        :root {
+            --header-height: 80px; /* Baseado no seu padding py-4 (16px * 2) + altura dos ícones (aprox. 48px) */
+            --footer-height: 56px; /* Baseado no seu padding p-4 (16px * 2) + altura da linha de texto (aprox. 24px) */
+        }
+
+        /* Certifica que o HTML e BODY ocupam a altura total */
+        html, body {
+            height: 100%;
+        }
+
+        /* O body se torna um container flexível de coluna */
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Garante que o body ocupe toda a altura da viewport */
+        }
+
+        /* O main-content-wrapper (o bloco 'content') deve crescer e preencher o espaço */
+        .main-content-wrapper {
+            flex-grow: 1; /* Faz com que esta área ocupe todo o espaço restante */
+            display: flex; /* Permite que o conteúdo dentro dele também seja flexível */
+            flex-direction: column; /* Organiza o conteúdo interno em coluna */
+        }
+    </style>
 </head>
 <body class="flex flex-col min-h-screen bg-gray-50 font-poppins">
 
@@ -44,8 +73,11 @@
 
     <div id="toast-container" class="fixed top-4 right-4 z-[1001] flex flex-col gap-2"></div>
 
-    {% block content %}
-    {% endblock %}
+    {# Adicionado um wrapper para o conteúdo principal que irá crescer #}
+    <div class="main-content-wrapper">
+        {% block content %}
+        {% endblock %}
+    </div>
 
     <footer class="bg-gray-800 text-white text-center p-4 shadow-inner" role="contentinfo">
         <p>&copy; 2025 Projeto Integrador IV. Todos os direitos reservados.</p>

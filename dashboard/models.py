@@ -1,16 +1,12 @@
-# dashboard/models.py
-
 from djongo import models
 from django.utils import timezone
 
-# Choices para status do pedido
 PEDIDO_STATUS_CHOICES = [
-    ('pendente', 'Pendente'),
-    ('em_andamento', 'Em Andamento'),
-    ('concluido', 'Concluído'),
+    (2, 'Pendente'),
+    (1, 'Em Andamento'),
+    (0, 'Concluído'),
 ]
 
-# Choices comuns para Tipos de Forma (usado em Peca e Pedido)
 TIPO_FORMA_CHOICES = [
     ('circulo', 'Círculo'),
     ('hexagono', 'Hexágono'),
@@ -37,18 +33,16 @@ class Peca(models.Model):
         verbose_name = "Peça em Estoque"
         verbose_name_plural = "Peças em Estoque"
 
+class Estoque(models.Model):
+    pass
 
 # Modelo para Pedido
 class Pedido(models.Model):
-    # Deixamos o ID ser gerado automaticamente pelo Django (BigAutoField por padrão),
-    # que o Djongo mapeará para o _id do MongoDB.
-    # NÃO DEFINA 'id = models.AutoField' ou 'BigAutoField' explicitamente se já é o DEFAULT_AUTO_FIELD
     data = models.DateTimeField(default=timezone.now, verbose_name="Data e Hora do Pedido")
     pecas = models.JSONField(verbose_name="IDs das Peças nas Montagens")
-    status = models.CharField(max_length=50, choices=PEDIDO_STATUS_CHOICES, default='pendente', verbose_name="Status do Pedido")
+    status = models.IntegerField(choices=PEDIDO_STATUS_CHOICES, default=2, verbose_name="Status do Pedido")  # default=2 = pendente
 
     def __str__(self):
-        # Para acessar o ID gerado automaticamente, use self.pk ou self.id
         return f"Pedido {self.pk} - Status: {self.get_status_display()}"
 
     def get_pecas_nomes(self):

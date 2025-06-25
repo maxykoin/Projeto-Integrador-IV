@@ -3,9 +3,7 @@ import { connectWebSocket, initializeNotifications } from '/static/js/modules/no
 import { initializeModals } from '/static/js/modules/modals.js';
 import { updateOrdersChart } from '/static/js/modules/charts.js';
 import { newOrderForm, confirmOrderButton, initializeNewOrderPieceSelectors, handleConfirmOrderClick } from '/static/js/modules/newOrder.js';
-// ===============================
-// DOM ELEMENTS FOR DASHBOARD (HOME.HTML)
-// ===============================
+
 const totalPedidosEl = document.getElementById('total-pedidos');
 const pedidosEmAndamentoEl = document.getElementById('pedidos-em-andamento');
 const circuloQtdEl = document.getElementById('circulo-qtd');
@@ -13,23 +11,15 @@ const hexagonoQtdEl = document.getElementById('hexagono-qtd');
 const quadradoQtdEl = document.getElementById('quadrado-qtd');
 const lowStockAlertEl = document.querySelector('section[role="alert"]');
 
-// ===============================
-// UI UPDATE FUNCTIONS
-// ===============================
-
 function updateDashboardUI(data) {
-    if (!totalPedidosEl || !pedidosEmAndamentoEl || !circuloQtdEl || !hexagonoQtdEl || !quadradoQtdEl) {
-        console.warn("Dashboard UI elements not found. Skipping UI update.");
-        return;
-    }
+    if (!totalPedidosEl || !pedidosEmAndamentoEl || !circuloQtdEl || !hexagonoQtdEl || !quadradoQtdEl) return;
 
     totalPedidosEl.textContent = data.em_andamento_count + data.concluido_count;
     pedidosEmAndamentoEl.textContent = data.em_andamento_count;
 
     for (const shapeType in data.stock_info) {
         const stockItem = data.stock_info[shapeType];
-        let element;
-        let parentDiv;
+        let element, parentDiv;
 
         if (shapeType === 'circulo') {
             element = circuloQtdEl;
@@ -46,9 +36,7 @@ function updateDashboardUI(data) {
             element.textContent = stockItem.quantity;
             if (stockItem.is_low_stock) {
                 parentDiv.classList.add('border-4', 'border-red-500');
-                if (lowStockAlertEl) {
-                    lowStockAlertEl.style.display = 'block';
-                }
+                if (lowStockAlertEl) lowStockAlertEl.style.display = 'block';
             } else {
                 parentDiv.classList.remove('border-4', 'border-red-500');
             }
@@ -56,53 +44,58 @@ function updateDashboardUI(data) {
     }
 }
 
-// ===============================
-// EVENT LISTENERS
-// ===============================
+function updateHistoricoUI(pedidos) {
+    if (window.location.pathname !== '/pedidos/historico') return;
+    const pedidosContainer = document.getElementById('pedidos-container');
+    if (!pedidosContainer) return;
+
+    pedidosContainer.innerHTML = '';
+
+    pedidos.forEach(pedido => {
+        const div = document.createElement('div');
+        div.classList.add('pedido-item');
+        div.innerHTML = `
+            <h3>Pedido #${pedido.id} - Status: ${pedido.status}</h3>
+            <p>Data: ${pedido.data}</p>
+            <p>Peças: ${pedido.pecas_list_names.join(', ')}</p>
+        `;
+        pedidosContainer.appendChild(div);
+    });
+}
 
 document.addEventListener('dashboardUpdate', (event) => {
     updateDashboardUI(event.detail);
+
+    if (window.location.pathname === '/pedidos/historico') {
+        fetch('/pedidos/json/')
+            .then(res => res.ok ? res.json() : Promise.reject('Failed to fetch'))
+            .then(data => updateHistoricoUI(data.pedidos))
+            .catch(console.error);
+    }
 });
 
-// ===============================
-// APP INITIALIZATION
-// ===============================
 document.addEventListener('DOMContentLoaded', () => {
     setupGlobalTooltips();
-    connectWebSocket(); // Esta função agora gerencia tudo de notificações via WS
-    initializeNotifications(); // Inicializa os listeners de UI para o sino/dropdown
+    connectWebSocket();
+    initializeNotifications();
 
-    // New Order Page Logic
     if (newOrderForm) {
         initializeNewOrderPieceSelectors();
         if (confirmOrderButton) {
-            confirmOrderButton.addEventListener('click', async (event) => {
+            confirmOrderButton.addEventListener('click', async (e) => {
                 showLoader();
-                await handleConfirmOrderClick(event);
+                await handleConfirmOrderClick(e);
                 hideLoader();
             });
         }
     }
 
-    // Historical Orders Page Logic (Modals and Search)
     initializeModals();
 
-    // Charts for Historical Orders Page
     if (window.location.pathname === '/pedidos/historico') {
-        updateOrdersChart('7days'); // Default to 7 days
-
-        const filter7DaysBtn = document.getElementById('filter7Days');
-        const filter30DaysBtn = document.getElementById('filter30Days');
-        const filterThisMonthBtn = document.getElementById('filterThisMonth');
-
-        if (filter7DaysBtn) {
-            filter7DaysBtn.addEventListener('click', () => updateOrdersChart('7days'));
-        }
-        if (filter30DaysBtn) {
-            filter30DaysBtn.addEventListener('click', () => updateOrdersChart('30days'));
-        }
-        if (filterThisMonthBtn) {
-            filterThisMonthBtn.addEventListener('click', () => updateOrdersChart('this_month'));
-        }
+        updateOrdersChart('7days');
+        document.getElementById('filter7Days')?.addEventListener('click', () => updateOrdersChart('7days'));
+        document.getElementById('filter30Days')?.addEventListener('click', () => updateOrdersChart('30days'));
+        document.getElementById('filterThisMonth')?.addEventListener('click', () => updateOrdersChart('this_month'));
     }
 });

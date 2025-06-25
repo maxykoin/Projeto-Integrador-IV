@@ -4,56 +4,76 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<main class="flex-grow w-full px-4 sm:px-6 lg:px-8 py-8" role="main" aria-label="Dashboard de Pedidos">
-    {# Alerta de estoque baixo removido, pois a lógica de estoque não existe mais #}
-    {# <section aria-live="assertive" role="alert" ...>...</section> #}
-
-    {# Título principal do dashboard #}
-    <h1 class="text-center text-4xl font-extrabold mb-12 tracking-tight dashboard-title text-gray-900">Dashboard de Pedidos</h1>
-
-    <div class="border-t border-gray-300 mb-12 w-full max-w-6xl mx-auto"></div>
-
-    {# Indicadores gerais do sistema #}
-    <section aria-label="Indicadores gerais do sistema" class="max-w-6xl mx-auto mb-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-8 flex flex-col items-center justify-center min-w-[280px] hover-scale-105 active-scale-95" data-tooltip="Total de todos os pedidos já registrados">
-            <p class="text-sm uppercase tracking-wide font-semibold mb-3 dashboard-card-label text-gray-700">Total de Pedidos</p>
-            <p class="text-6xl font-bold select-none dashboard-card-value text-gray-900" id="total-pedidos">{{ total_pedidos_count }}</p>
+<main class="flex-grow w-full px-4 sm:px-6 lg:px-8 py-6 bg-gray-50 flex flex-col justify-between items-center md:py-8 overflow-y-auto">
+    <div class="max-w-7xl mx-auto w-full flex flex-col flex-grow">
+        {# Título principal do dashboard #}
+        <h1 class="text-center text-4xl font-extrabold mb-4 tracking-tight text-gray-900 drop-shadow-sm md:text-5xl">Dashboard de Pedidos</h1>
+        
+        {# SEÇÃO DO ESTADO DO ROBÔ - MODIFICADA #}
+        <div class="text-center mb-6 text-xl font-semibold flex items-center justify-center gap-3 md:mb-8 md:text-2xl p-3 rounded-lg shadow-sm">
+            Estado do Robô: 
+            <span id="robot-status" class="flex items-center gap-2 font-bold text-gray-800">
+                {% if estado_robo == 'Ocioso' %}
+                    <i class="fas fa-circle text-green-500 text-base animate-pulse"></i> {# Ícone de círculo verde pulsando #}
+                    <span class="text-green-600">Ocioso</span>
+                {% elif estado_robo == 'Em Montagem' %}
+                    <i class="fas fa-spinner fa-spin text-yellow-500 text-base"></i> {# Ícone de spinner amarelo girando #}
+                    <span class="text-yellow-700">Em Montagem</span>
+                {% elif estado_robo == 'Erro' %} {# Exemplo de estado de erro #}
+                    <i class="fas fa-exclamation-triangle text-red-500 text-base animate-bounce"></i> {# Ícone de aviso vermelho com bounce #}
+                    <span class="text-red-700">Erro!</span>
+                {% else %} {# Caso de estado desconhecido ou outro #}
+                    <i class="fas fa-question-circle text-gray-400 text-base"></i>
+                    <span class="text-gray-600">{{ estado_robo }}</span>
+                {% endif %}
+            </span>
         </div>
+        {# FIM DA SEÇÃO DO ESTADO DO ROBÔ #}
 
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-8 flex flex-col items-center justify-center min-w-[280px] hover-scale-105 active-scale-95" data-tooltip="Pedidos aguardando conclusão">
-            <p class="text-sm uppercase tracking-wide font-semibold mb-3 dashboard-card-label text-gray-700">Pedidos em Andamento</p>
-            <p class="text-6xl font-bold select-none dashboard-card-value text-gray-900" id="pedidos-em-andamento">{{ em_andamento_count }}</p>
-        </div>
+        <div class="w-full border-t border-gray-200 mb-6 md:mb-8"></div>
 
-        <div class="bg-white rounded-xl shadow-lg border border-gray-200 p-8 flex flex-col items-center justify-center min-w-[280px] hover-scale-105 active-scale-95" data-tooltip="Pedidos finalizados com sucesso">
-            <p class="text-sm uppercase tracking-wide font-semibold mb-3 dashboard-card-label text-gray-700">Pedidos Concluídos</p>
-            <p class="text-6xl font-bold select-none dashboard-card-value text-gray-900" id="pedidos-concluidos">{{ concluido_count }}</p>
-        </div>
-    </section>
+        {# Indicadores gerais do sistema - Usando flex-grow para distribuir espaço #}
+        <section aria-label="Indicadores gerais do sistema" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 md:mb-8 w-full">
+            <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6 flex flex-col items-center justify-center transform transition-all duration-300 hover:scale-103 hover:shadow-xl active:scale-98 cursor-pointer" data-tooltip="Total de todos os pedidos já registrados">
+                <p class="text-sm uppercase tracking-wider font-bold mb-2 text-gray-600 md:text-base">Total de Pedidos</p>
+                <p class="text-5xl font-extrabold select-none text-gray-900 md:text-6xl" id="total-pedidos">{{ total_pedidos_count }}</p>
+            </div>
 
-    <div class="border-t border-gray-300 mb-12 w-full max-w-6xl mx-auto"></div>
+            <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6 flex flex-col items-center justify-center transform transition-all duration-300 hover:scale-103 hover:shadow-xl active:scale-98 cursor-pointer" data-tooltip="Pedidos aguardando conclusão">
+                <p class="text-sm uppercase tracking-wider font-bold mb-2 text-gray-600 md:text-base">Pedidos em Andamento</p>
+                <p class="text-5xl font-extrabold select-none text-gray-900 md:text-6xl" id="pedidos-em-andamento">{{ em_andamento_count }}</p>
+            </div>
 
-    {# Seção de Status do Pedido Pendente #}
-    <section aria-label="Status do Pedido Pendente" class="max-w-6xl mx-auto mb-16">
-        <div id="pending-order-card" class="bg-white rounded-xl shadow-lg border border-gray-200 p-8 flex flex-col items-center justify-center min-w-[280px] hover-scale-105 active-scale-95 transition-colors duration-300
-            {% if pedido_pendente %}
-                bg-red-50 border-red-300
-            {% else %}
-                bg-green-50 border-green-300
-            {% endif %}"
-            data-tooltip="Verifica se há um pedido aguardando processamento">
-            
-            {% if pedido_pendente %}
-                <p class="text-sm uppercase tracking-wide font-semibold mb-3 dashboard-card-label text-red-700">Pedido Pendente</p>
-                <p class="text-6xl font-bold select-none dashboard-card-value text-red-600 mb-4" id="pending-order-id">#{{ pedido_pendente.id }}</p>
-            {% else %}
-                <p class="text-sm uppercase tracking-wide font-semibold mb-3 dashboard-card-label text-green-700">Pedido Pendente</p>
-                <p class="text-5xl font-bold select-none dashboard-card-value text-green-600 mb-4" id="pending-order-id">Nenhum</p>
-                <p class="mt-2 text-gray-500">Tudo em ordem!</p>
-            {% endif %}
-        </div>
-    </section>
+            <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6 flex flex-col items-center justify-center transform transition-all duration-300 hover:scale-103 hover:shadow-xl active:scale-98 cursor-pointer" data-tooltip="Pedidos finalizados com sucesso">
+                <p class="text-sm uppercase tracking-wider font-bold mb-2 text-gray-600 md:text-base">Pedidos Concluídos</p>
+                <p class="text-5xl font-extrabold select-none text-gray-900 md:text-6xl" id="pedidos-concluidos">{{ concluido_count }}</p>
+            </div>
+        </section>
 
+        <div class="w-full border-t border-gray-200 mb-6 md:mb-8"></div>
+
+        {# Seção de Status do Pedido Pendente - Usando flex-grow para distribuir espaço #}
+        <section aria-label="Status do Pedido Pendente" class="flex-grow flex items-center justify-center w-full">
+            <div id="pending-order-card" class="rounded-xl shadow-lg border p-6 flex flex-col items-center justify-center w-full transform transition-all duration-500
+                {% if pedido_pendente %}
+                    bg-red-50 border-red-300 hover:shadow-red-200/50
+                {% else %}
+                    bg-green-50 border-green-300 hover:shadow-green-200/50
+                {% endif %}
+                hover:scale-103 active:scale-98 cursor-pointer"
+                data-tooltip="Verifica se há um pedido aguardando processamento">
+                
+                {% if pedido_pendente %}
+                    <p class="text-sm uppercase tracking-wider font-bold mb-2 text-red-700 md:text-base">Pedido Pendente</p>
+                    <p class="text-5xl font-extrabold select-none text-red-600 mb-4 animate-pulse md:text-6xl" id="pending-order-id">#{{ pedido_pendente.id }}</p>
+                    <p class="text-base text-red-500 font-medium md:text-lg">Aguardando processamento do robô...</p>
+                {% else %}
+                    <p class="text-sm uppercase tracking-wider font-bold mb-2 text-green-700 md:text-base">Pedido Pendente</p>
+                    <p class="text-5xl font-extrabold select-none text-green-600 mb-4 md:text-6xl" id="pending-order-id">Nenhum</p>
+                    <p class="text-base text-green-500 font-medium md:text-lg">Todos os pedidos foram processados com sucesso!</p>
+                {% endif %}
+            </div>
+        </section>
+    </div>
 </main>
-
 {% endblock %} {# Fim do bloco de conteúdo #}
