@@ -14,13 +14,11 @@ from django.conf import settings
 from pymongo import MongoClient
 
 def home(request):
-    # dados do Django ORM
     em_andamento_count = Pedido.objects.filter(status=1).count()
     pedidos_concluidos_count = Pedido.objects.filter(status=0).count()
     total_pedidos = em_andamento_count + pedidos_concluidos_count
     pedido_pendente = Pedido.objects.filter(status=2).first()
 
-    # pegar URI do Mongo do settings.py
     mongo_uri = settings.DATABASES['default'].get('CLIENT', {}).get('host', 'mongodb://localhost:27017/')
     mongo_db_name = settings.DATABASES['default'].get('NAME', 'pi-iv')
 

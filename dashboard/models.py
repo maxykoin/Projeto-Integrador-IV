@@ -13,10 +13,8 @@ TIPO_FORMA_CHOICES = [
     ('quadrado', 'Quadrado'),
 ]
 
-# Modelo para "Peça" (com ID Fixo e Quantidade em Estoque)
+# Modelo para "Peça"
 class Peca(models.Model):
-    # Este 'id' é um IntegerField customizado, mantemos como estava.
-    # Djongo deve mapear isso para um campo 'id' no documento MongoDB.
     id = models.IntegerField(primary_key=True, verbose_name="ID da Peça (1=Círculo, 2=Hexágono, 3=Quadrado)")
     
     name = models.CharField(max_length=100, unique=True, verbose_name="Nome da Peça")
@@ -40,7 +38,7 @@ class Estoque(models.Model):
 class Pedido(models.Model):
     data = models.DateTimeField(default=timezone.now, verbose_name="Data e Hora do Pedido")
     pecas = models.JSONField(verbose_name="IDs das Peças nas Montagens")
-    status = models.IntegerField(choices=PEDIDO_STATUS_CHOICES, default=2, verbose_name="Status do Pedido")  # default=2 = pendente
+    status = models.IntegerField(choices=PEDIDO_STATUS_CHOICES, default=2, verbose_name="Status do Pedido")
 
     def __str__(self):
         return f"Pedido {self.pk} - Status: {self.get_status_display()}"
@@ -62,9 +60,8 @@ class Pedido(models.Model):
         verbose_name_plural = "Pedidos de Montagem"
 
 
-# Modelo para Notificação (Adicionado na última iteração)
+# Modelo para Notificação
 class Notificacao(models.Model):
-    # Deixe o ID ser gerado automaticamente. O Djongo cuidará do _id do MongoDB.
     titulo = models.CharField(max_length=200, verbose_name="Título da Notificação")
     mensagem = models.TextField(verbose_name="Mensagem Completa")
     data_criacao = models.DateTimeField(default=timezone.now, verbose_name="Data de Criação")
