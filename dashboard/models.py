@@ -2,6 +2,7 @@ from djongo import models
 from django.utils import timezone
 
 PEDIDO_STATUS_CHOICES = [
+    (3, 'Cancelado'),
     (2, 'Pendente'),
     (1, 'Em Andamento'),
     (0, 'Concluído'),
@@ -9,13 +10,13 @@ PEDIDO_STATUS_CHOICES = [
 
 TIPO_FORMA_CHOICES = [
     ('circulo', 'Círculo'),
-    ('hexagono', 'Hexágono'),
     ('quadrado', 'Quadrado'),
+    ('hexagono', 'Hexágono'),
 ]
 
 # Modelo para "Peça"
 class Peca(models.Model):
-    id = models.IntegerField(primary_key=True, verbose_name="ID da Peça (1=Círculo, 2=Hexágono, 3=Quadrado)")
+    id = models.IntegerField(primary_key=True, verbose_name="ID da Peça (1=Círculo, 3=Quadrado, 3=Hexágono)")
     
     name = models.CharField(max_length=100, unique=True, verbose_name="Nome da Peça")
     tipo = models.CharField(max_length=50, choices=TIPO_FORMA_CHOICES, unique=True, verbose_name="Tipo de Forma")

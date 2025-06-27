@@ -6,8 +6,8 @@ export const MONTAGE_COLORS = {
 
 export const PIECE_ID_TO_DETAILS = {
     '1': { type: 'circulo', name: 'Círculo' },
-    '2': { type: 'hexagono', name: 'Hexágono' },
-    '3': { type: 'quadrado', name: 'Quadrado' }
+    '3': { type: 'hexagono', name: 'Hexágono' },
+    '2': { type: 'quadrado', name: 'Quadrado' }
 };
 
 // New API Endpoints

@@ -40,6 +40,8 @@
                                         <span class="text-yellow-600 font-semibold">Em andamento</span>
                                     {% elif pedido.status == "Concluído" %}
                                         <span class="text-green-600 font-semibold">Concluído</span>
+                                    {% elif pedido.status == "Cancelado" %}
+                                        <span class="text-red-600 font-semibold">Cancelado</span>
                                     {% else %}
                                         <span class="text-gray-600">{{ pedido.status|capfirst }}</span>
                                     {% endif %}

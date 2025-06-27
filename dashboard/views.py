@@ -162,7 +162,7 @@ def historico(request):
     pedidos = Pedido.objects.all()
     all_pecas = {p.id: p for p in Peca.objects.all()}
 
-    status_map = {0: "Concluído", 1: "Em Andamento", 2: "Pendente"}
+    status_map = {0: "Concluído", 1: "Em Andamento", 2: "Pendente", 3: "Cancelado"}
     pedidos_formatados = []
 
     for pedido in pedidos:

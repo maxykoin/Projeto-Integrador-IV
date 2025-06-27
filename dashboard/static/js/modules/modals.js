@@ -1,5 +1,3 @@
-// dashboard/static/js/modules/modals.js
-
 import { showToast, showLoader, hideLoader, setupGlobalTooltips } from './utils.js';
 import { MONTAGE_COLORS, PIECE_ID_TO_DETAILS } from './constants.js'; // Importando as constantes
 
